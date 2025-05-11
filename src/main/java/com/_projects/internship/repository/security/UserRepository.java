@@ -43,4 +43,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return The number of users matching the roles.
      */
     long countByRoleIn(Collection<Role> roles); // Add countByRoleIn
+
+    boolean findByIdAndRole(Long companyId, Role company);
+
+    boolean existsByIdAndRole(Long companyId, Role company);
 }
