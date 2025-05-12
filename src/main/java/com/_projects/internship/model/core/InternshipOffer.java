@@ -5,13 +5,7 @@ import java.util.List;
 
 import com._projects.internship.model.security.User;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +22,8 @@ public class InternshipOffer {
   private Long id;
   private String title;
   private String description;
+  @ManyToOne
+  @JoinColumn(name = "sector_id")
   private Sector sector;
   private List<String> skills;
   private String location;

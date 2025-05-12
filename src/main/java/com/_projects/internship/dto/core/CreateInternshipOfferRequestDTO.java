@@ -20,7 +20,6 @@ public class CreateInternshipOfferRequestDTO {
   @NotBlank(message = "Description can not be empty")
   private String description;
   @NotBlank(message = "sector can not be empty")
-  @Enumerated(EnumType.STRING)
   private Sector sector;
   @NotBlank(message = "Location can not be empty")
   private String location;

@@ -2,16 +2,15 @@ package com._projects.internship.service.core;
 
 import java.util.List;
 
+import com._projects.internship.model.security.User;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com._projects.internship.dto.core.CreateInternshipOfferRequestDTO;
-import com._projects.internship.dto.core.UpdateInternshipOfferRequestDTO;
 import com._projects.internship.exceptions.core.ResourceNotFoundException;
 import com._projects.internship.mapper.core.InternshipOfferMapper;
 import com._projects.internship.model.core.InternshipOffer;
 import com._projects.internship.model.core.OfferStatus;
-import com._projects.internship.model.core.Sector;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.repository.core.InternshipOfferRepository;
 import com._projects.internship.repository.security.UserRepository;
@@ -28,13 +27,18 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
   @Override
   public InternshipOffer createInternshipOffer(CreateInternshipOfferRequestDTO dto) {
     InternshipOffer newOffer = InternshipOfferMapper.toEntity(dto);
-    newOffer.setCompany(userRepository.findById(dto.getCompanyId()).orElseThrow());
-    return internshipOfferRepository.save(newOffer);
+    User userToAdd = userRepository.findById(dto.getCompanyId()).orElseThrow();
+    if(userToAdd.getRole().equals(Role.ADMIN)) {
+      newOffer.setCompany(userToAdd);
+      return internshipOfferRepository.save(newOffer);
+    }else{
+      throw new ResourceNotFoundException("Company does not exist");
+    }
   }
 
   @Override
-  public InternshipOffer updateInternshipOffer(UpdateInternshipOfferRequestDTO dto) {
-    InternshipOffer offerToUpdate = internshipOfferRepository.findById(dto.getId())
+  public InternshipOffer updateInternshipOffer(Long id,CreateInternshipOfferRequestDTO dto) {
+    InternshipOffer offerToUpdate = internshipOfferRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Internship offer not found"));
     offerToUpdate.setTitle(dto.getTitle());
     offerToUpdate.setDescription(dto.getDescription());
@@ -47,26 +51,39 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
 
   @Override
   public InternshipOffer inactivateInternshipOffer(Long internshipOfferId) {
-    InternshipOffer offerToActivate = internshipOfferRepository.findById(internshipOfferId)
+    InternshipOffer offerToInactivate = internshipOfferRepository.findById(internshipOfferId)
         .orElseThrow(() -> new ResourceNotFoundException("Offer not found"));
-    offerToActivate.setStatus(OfferStatus.INACTIVE);
-    return internshipOfferRepository.save(offerToActivate);
+    if(offerToInactivate.getStatus().equals(OfferStatus.ACTIVE)) {
+      offerToInactivate.setStatus(OfferStatus.INACTIVE);
+      return internshipOfferRepository.save(offerToInactivate);
+    }else {
+      throw new ResourceNotFoundException("Offer is not active");
+    }
+
   }
 
   @Override
   public InternshipOffer activateInternshipOffer(Long internshipOfferId) {
     InternshipOffer offerToActivate = internshipOfferRepository.findById(internshipOfferId)
         .orElseThrow(() -> new ResourceNotFoundException("Offer not found"));
-    offerToActivate.setStatus(OfferStatus.ACTIVE);
-    return internshipOfferRepository.save(offerToActivate);
+    if(offerToActivate.getStatus().equals(OfferStatus.INACTIVE) || offerToActivate.getStatus().equals(OfferStatus.COMPLETED)) {
+      offerToActivate.setStatus(OfferStatus.ACTIVE);
+      return internshipOfferRepository.save(offerToActivate);
+    }else {
+      throw new ResourceNotFoundException("Offer is not active or completed");
+    }
   }
 
   @Override
   public InternshipOffer completeInternshipOffer(Long internshipOfferId) {
-    InternshipOffer offerToActivate = internshipOfferRepository.findById(internshipOfferId)
+    InternshipOffer offerToComplete = internshipOfferRepository.findById(internshipOfferId)
         .orElseThrow(() -> new ResourceNotFoundException("Offer not found"));
-    offerToActivate.setStatus(OfferStatus.COMPLETED);
-    return internshipOfferRepository.save(offerToActivate);
+    if(offerToComplete.getStatus().equals(OfferStatus.ACTIVE)) {
+      offerToComplete.setStatus(OfferStatus.COMPLETED);
+      return internshipOfferRepository.save(offerToComplete);
+    }else {
+      throw new ResourceNotFoundException("Offer is not active or completed");
+    }
   }
 
   @Override
@@ -77,7 +94,7 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
   }
 
   @Override
-  public List<InternshipOffer> filterInternshipOffers(Sector sector, String location, Integer length, OfferStatus status,
+  public List<InternshipOffer> filterInternshipOffers(String sector, String location, Integer length, OfferStatus status,
       Long companyId) {
     if (companyId != null && !userRepository.existsByIdAndRole(companyId, Role.COMPANY)) {
       throw new ResourceNotFoundException("Company not found");
@@ -85,7 +102,7 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
 
     Specification<InternshipOffer> spec = Specification
         .where(InternshipOfferSpecifications.withStatus(status))
-        .and(InternshipOfferSpecifications.withSector(sector))
+        .and(InternshipOfferSpecifications.withSectorName(sector))
         .and(InternshipOfferSpecifications.withLocation(location))
         .and(InternshipOfferSpecifications.withLength(length))
         .and(InternshipOfferSpecifications.withCompany(companyId));

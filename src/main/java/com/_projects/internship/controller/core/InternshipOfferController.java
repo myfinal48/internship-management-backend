@@ -15,10 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com._projects.internship.dto.core.CreateInternshipOfferRequestDTO;
 import com._projects.internship.dto.core.GetInternshipOfferResponseDTO;
-import com._projects.internship.dto.core.UpdateInternshipOfferRequestDTO;
 import com._projects.internship.mapper.core.InternshipOfferMapper;
 import com._projects.internship.model.core.OfferStatus;
-import com._projects.internship.model.core.Sector;
 import com._projects.internship.service.core.InternshipOfferService;
 
 import lombok.RequiredArgsConstructor;
@@ -44,9 +42,9 @@ public class InternshipOfferController {
 
   @PutMapping
   @PreAuthorize("hasRole('COMPANY')")
-  public ResponseEntity<GetInternshipOfferResponseDTO> updateInternshipOffer(
-      @RequestBody UpdateInternshipOfferRequestDTO dto) throws Exception {
-    return ResponseEntity.ok(InternshipOfferMapper.toGetResponseDTO(internshipOfferService.updateInternshipOffer(dto)));
+  public ResponseEntity<GetInternshipOfferResponseDTO> updateInternshipOffer(@RequestParam Long id,
+      @RequestBody CreateInternshipOfferRequestDTO dto) throws Exception {
+    return ResponseEntity.ok(InternshipOfferMapper.toGetResponseDTO(internshipOfferService.updateInternshipOffer(id,dto)));
   }
 
   @PostMapping("/{id}/activate")
@@ -75,7 +73,7 @@ public class InternshipOfferController {
 
   @GetMapping("/filter")
   public ResponseEntity<List<GetInternshipOfferResponseDTO>> filterOffers(
-      @RequestParam(required = false) Sector sector,
+      @RequestParam(required = false) String sector,
       @RequestParam(required = false) String location,
       @RequestParam(required = false) Integer length,
       @RequestParam(required = false) OfferStatus status,

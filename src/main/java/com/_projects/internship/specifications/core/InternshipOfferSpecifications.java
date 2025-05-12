@@ -12,8 +12,12 @@ import jakarta.persistence.criteria.Join;
 
 public class InternshipOfferSpecifications {
 
-  public static Specification<InternshipOffer> withSector(Sector sector) {
-    return (root, query, cb) -> sector != null ? cb.equal(root.get("sector"), sector) : null;
+  public static Specification<InternshipOffer> withSectorName(String sectorName) {
+    return (root, query, cb) -> {
+      if (sectorName == null) return null;
+      Join<InternshipOffer, Sector> sectorJoin = root.join("sector");
+      return cb.equal(cb.lower(sectorJoin.get("name")), sectorName.toLowerCase());
+    };
   }
 
   public static Specification<InternshipOffer> withLocation(String location) {

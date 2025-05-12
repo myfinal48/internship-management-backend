@@ -3,15 +3,13 @@ package com._projects.internship.service.core;
 import java.util.List;
 
 import com._projects.internship.dto.core.CreateInternshipOfferRequestDTO;
-import com._projects.internship.dto.core.UpdateInternshipOfferRequestDTO;
 import com._projects.internship.model.core.InternshipOffer;
 import com._projects.internship.model.core.OfferStatus;
-import com._projects.internship.model.core.Sector;
 
 public interface InternshipOfferService {
   InternshipOffer createInternshipOffer(CreateInternshipOfferRequestDTO dto);
 
-  InternshipOffer updateInternshipOffer(UpdateInternshipOfferRequestDTO dto);
+  InternshipOffer updateInternshipOffer(Long id, CreateInternshipOfferRequestDTO dto);
 
   InternshipOffer inactivateInternshipOffer(Long internshipOfferId);
 
@@ -21,5 +19,5 @@ public interface InternshipOfferService {
 
   InternshipOffer getInternshipById(Long internshipOfferId);
 
-  List<InternshipOffer> filterInternshipOffers(Sector sector, String location, Integer length, OfferStatus status, Long companyId);
+  List<InternshipOffer> filterInternshipOffers(String sector, String location, Integer length, OfferStatus status, Long companyId);
 }
