@@ -71,7 +71,7 @@ public class InternshipOfferController {
         .ok(InternshipOfferMapper.toGetResponseDTO(internshipOfferService.completeInternshipOffer(id)));
   }
 
-  @GetMapping("/filter")
+  @GetMapping
   public ResponseEntity<List<GetInternshipOfferResponseDTO>> filterOffers(
       @RequestParam(required = false) String sector,
       @RequestParam(required = false) String location,
