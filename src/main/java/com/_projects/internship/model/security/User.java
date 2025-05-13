@@ -1,5 +1,6 @@
 package com._projects.internship.model.security;
 
+import com._projects.internship.model.core.Sector;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -49,6 +50,10 @@ public class User implements UserDetails {
 
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
+
+    @ManyToOne
+    @JoinColumn(name = "sector_id")
+    private Sector sector;
 
     @NotNull(message = "Role cannot be null")
     @Enumerated(EnumType.STRING) // Store enum names (ADMIN, USER) in the DB
