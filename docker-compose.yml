@@ -1,0 +1,9 @@
+services:
+  internship-app:
+    image: internship-app
+    build: .
+    env_file: .env
+    environment:
+      - PORT=${PORT}
+    ports:
+      - "8888:${PORT:-8888}"
