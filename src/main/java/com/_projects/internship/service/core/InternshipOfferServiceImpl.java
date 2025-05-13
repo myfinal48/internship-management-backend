@@ -28,7 +28,7 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
   public InternshipOffer createInternshipOffer(CreateInternshipOfferRequestDTO dto) {
     InternshipOffer newOffer = InternshipOfferMapper.toEntity(dto);
     User userToAdd = userRepository.findById(dto.getCompanyId()).orElseThrow();
-    if(userToAdd.getRole().equals(Role.ADMIN)) {
+    if(userToAdd.getRole().equals(Role.COMPANY)) {
       newOffer.setCompany(userToAdd);
       return internshipOfferRepository.save(newOffer);
     }else{
