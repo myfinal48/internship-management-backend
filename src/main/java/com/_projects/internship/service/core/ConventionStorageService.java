@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -84,6 +85,41 @@ public class ConventionStorageService {
             throw new RuntimeException("Erreur lors de la récupération du fichier de convention", e);
         }
     }
+
+    /**
+     * Sauvegarde une convention signée (PDF) dans MinIO/S3
+     * @param conventionId L'ID de la convention
+     * @param file Le fichier PDF signé
+     * @return Le chemin d'accès au fichier stocké
+     */
+    public String saveSignedConvention(Long conventionId, MultipartFile file) {
+        String path = "signed-conventions/convention_" + conventionId + ".pdf";
+        try {
+            // Vérifier si le bucket existe, sinon le créer
+            boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!bucketExists) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+                log.info("Bucket '{}' créé avec succès", bucketName);
+            }
+            
+            try (InputStream is = file.getInputStream()) {
+                minioClient.putObject(
+                    PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(path)
+                        .stream(is, file.getSize(), -1)
+                        .contentType(file.getContentType())
+                        .build()
+                );
+                log.info("Convention signée ID: {} téléchargée avec succès", conventionId);
+            }
+            return path;
+        } catch (Exception e) {
+            log.error("Erreur lors de l'upload du PDF signé pour la convention ID: {}", conventionId, e);
+            throw new RuntimeException("Erreur lors de l'upload du PDF signé", e);
+        }
+    }
+// ...existing code...
 
     /**
      * Supprime un fichier de convention de MinIO/S3

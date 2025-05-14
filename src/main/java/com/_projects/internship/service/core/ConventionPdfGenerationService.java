@@ -1,6 +1,6 @@
 package com._projects.internship.service.core;
 
-import com._projects.internship.model.core.ConventionEntity;
+import com._projects.internship.model.core.Convention;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -30,7 +30,7 @@ public class ConventionPdfGenerationService {
      * @return Le contenu du PDF sous forme de tableau d'octets
      * @throws RuntimeException si une erreur survient lors de la génération du PDF
      */
-    public byte[] generateConventionPdf(ConventionEntity convention) {
+    public byte[] generateConventionPdf(Convention convention) {
         try (PDDocument document = new PDDocument();
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             
@@ -74,7 +74,7 @@ public class ConventionPdfGenerationService {
                 contentStream.showText("Étudiant:");
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                 contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("ID: " + convention.getStudentId());
+                contentStream.showText("ID: " + (convention.getStudent() != null ? convention.getStudent().getId() : "N/A"));
                 contentStream.endText();
  
                 // Entreprise
@@ -84,17 +84,17 @@ public class ConventionPdfGenerationService {
                 contentStream.showText("Entreprise:");
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                 contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("ID: " + convention.getCompanyId());
+                contentStream.showText("ID: " + (convention.getCompany() != null ? convention.getCompany().getId() : "N/A"));
                 contentStream.endText();
  
                 // Enseignant
                 contentStream.beginText();
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
                 contentStream.newLineAtOffset(50, 490);
-                contentStream.showText("Enseignant référent:");
+                contentStream.showText("Enseignant/Admin:");
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                 contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("ID: " + convention.getTeacherId());
+                contentStream.showText("ID: " + (convention.getTeacher() != null ? convention.getTeacher().getId() : "N/A"));
                 contentStream.endText();
  
                 // Signatures
@@ -110,7 +110,7 @@ public class ConventionPdfGenerationService {
                 contentStream.newLineAtOffset(50, 370);
                 contentStream.showText("Entreprise: ___________________");
                 contentStream.newLineAtOffset(0, -40);
-                contentStream.showText("Enseignant référent: ___________________");
+                contentStream.showText("Enseignant/Admin: ___________________");
                 contentStream.endText();
  
                 // Pied de page

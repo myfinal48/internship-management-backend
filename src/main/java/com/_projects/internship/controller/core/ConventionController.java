@@ -1,7 +1,9 @@
 package com._projects.internship.controller.core;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import com._projects.internship.dto.core.ConventionRequestDTO;
 import com._projects.internship.dto.core.ConventionResponseDTO;
 import com._projects.internship.service.core.ConventionService;
 import com._projects.internship.service.core.ConventionStorageService;
@@ -30,6 +32,33 @@ public class ConventionController {
     @Operation(summary = "Create convention after application accepted")
     public ResponseEntity<ConventionResponseDTO> create(@PathVariable Long applicationId) {
         return ResponseEntity.ok(conventionService.createFromApplication(applicationId));
+    }
+
+    @PostMapping(value = "/{id}/upload-signed-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Uploader une convention signée (PDF)")
+    public ResponseEntity<ConventionResponseDTO> uploadSignedPdf(
+        @PathVariable Long id,
+        @RequestParam("file") MultipartFile file) {
+        if (file.isEmpty() || file.getContentType() == null || !"application/pdf".equals(file.getContentType())) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        try {
+            // Sauvegarder le fichier PDF signé
+            String signedPdfPath = conventionStorageService.saveSignedConvention(id, file);
+            
+            // Mettre à jour l'entité convention avec le chemin du PDF signé
+            ConventionResponseDTO updatedConvention = conventionService.updateSignedPdfPath(id, signedPdfPath);
+            
+            if (updatedConvention == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok(updatedConvention);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the exception for debugging
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     /**
@@ -102,5 +131,42 @@ public class ConventionController {
         headers.setContentLength(pdfContent.length);
         
         return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+    }
+    
+    /**
+     * Permet à l'entreprise de mettre à jour une convention avant validation
+     * @param id L'ID de la convention
+     * @param companyId L'ID de l'entreprise qui fait la mise à jour
+     * @param dto Les données de mise à jour
+     * @return La convention mise à jour
+     */
+    @PutMapping("/{id}/update-by-company/{companyId}")
+    @Operation(summary = "Mettre à jour une convention par l'entreprise avant validation")
+    public ResponseEntity<ConventionResponseDTO> updateByCompany(
+            @PathVariable Long id, 
+            @PathVariable Long companyId,
+            @RequestBody ConventionRequestDTO dto) {
+        
+        // S'assurer que l'ID dans le chemin correspond à celui dans le DTO
+        if (!id.equals(dto.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        try {
+            ConventionResponseDTO updatedConvention = conventionService.updateByCompany(dto, companyId);
+            return ResponseEntity.ok(updatedConvention);
+        } catch (RuntimeException e) {
+            // Log l'exception
+            e.printStackTrace();
+            
+            // Retourner une réponse appropriée en fonction du message d'erreur
+            if (e.getMessage().contains("n'êtes pas autorisé")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            } else if (e.getMessage().contains("ne peut pas être modifiée")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+        }
     }
 }

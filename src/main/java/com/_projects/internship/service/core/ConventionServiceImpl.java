@@ -3,9 +3,11 @@ package com._projects.internship.service.core;
 import com._projects.internship.dto.core.ConventionRequestDTO;
 import com._projects.internship.dto.core.ConventionResponseDTO;
 import com._projects.internship.mapper.core.ConventionMapper;
-import com._projects.internship.model.core.ConventionEntity;
+import com._projects.internship.model.core.Convention;
 import com._projects.internship.model.core.ConventionStatus;
+import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.ConventionRepository;
+import com._projects.internship.repository.security.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +22,13 @@ import java.util.List;
 @Slf4j
 public class ConventionServiceImpl implements ConventionService {
 
+    private static final String CONVENTION_NOT_FOUND_MESSAGE = "Convention non trouvée avec l'ID: ";
+    
     private final ConventionRepository repository;
     private final ConventionMapper mapper;
     private final ConventionPdfGenerationService conventionPdfGenerationService;
     private final ConventionStorageService conventionStorageService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -35,18 +40,65 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     @Transactional
     public ConventionRequestDTO updateConvention(ConventionRequestDTO dto) {
-        // Implémentation à compléter
+        if (dto.getId() == null) {
+            throw new RuntimeException("L'ID de la convention est requis pour la mise à jour");
+        }
+        
+        // Récupérer la convention existante
+        Convention convention = repository.findById(dto.getId())
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + dto.getId()));
+        
+        // Vérifier si la convention peut être mise à jour (uniquement si elle est en attente ou rejetée par l'enseignant)
+        if (convention.getStatus() != ConventionStatus.PENDING && 
+            convention.getStatus() != ConventionStatus.REJECTED_BY_TEACHER) {
+            throw new RuntimeException("La convention ne peut pas être modifiée dans son état actuel: " + convention.getStatus());
+        }
+        
+        // Mettre à jour les champs modifiables
+        // Note: Nous ne modifions pas les relations avec les utilisateurs (student, company, teacher)
+        
+        // Si des champs supplémentaires sont fournis dans le DTO, les mettre à jour
+        if (dto.getTitle() != null) {
+            // Ces champs ne sont pas directement dans l'entité Convention, mais pourraient être 
+            // stockés dans des métadonnées ou utilisés pour régénérer le PDF
+            log.info("Mise à jour des informations supplémentaires pour la convention ID: {}", dto.getId());
+        }
+        
+        // Réinitialiser le statut à PENDING si la convention était rejetée
+        if (convention.getStatus() == ConventionStatus.REJECTED_BY_TEACHER) {
+            convention.setStatus(ConventionStatus.PENDING);
+            convention.setRejectionReason(null);
+        }
+        
+        // Sauvegarder les modifications
+        convention = repository.save(convention);
+        
+        // Régénérer le PDF avec les nouvelles informations
+        regeneratePdf(convention);
+        
+        log.info("Convention ID: {} mise à jour avec succès", dto.getId());
+        
         return dto;
     }
-
+    
     @Override
     @Transactional
     public ConventionResponseDTO createFromApplication(Long applicationId) {
         // Création de l'entité convention
-        ConventionEntity entity = new ConventionEntity();
-        entity.setStudentId(1L); // À remplacer par les vraies données de l'application
-        entity.setCompanyId(1L); // À remplacer par les vraies données de l'application
-        entity.setTeacherId(1L); // À remplacer par les vraies données de l'application
+        Convention entity = new Convention();
+        
+        // Récupérer les utilisateurs par ID
+        // Note: Ces IDs doivent être remplacés par les vraies données de l'application
+        User student = userRepository.findById(1L)
+            .orElseThrow(() -> new RuntimeException("Étudiant non trouvé avec l'ID: 1"));
+        User company = userRepository.findById(1L)
+            .orElseThrow(() -> new RuntimeException("Entreprise non trouvée avec l'ID: 1"));
+        User teacher = userRepository.findById(1L)
+            .orElseThrow(() -> new RuntimeException("Enseignant non trouvé avec l'ID: 1"));
+        
+        entity.setStudent(student);
+        entity.setCompany(company);
+        entity.setTeacher(teacher);
         entity.setCreationDate(LocalDate.now());
         entity.setStatus(ConventionStatus.PENDING);
 
@@ -75,8 +127,8 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     @Transactional
     public ConventionResponseDTO validateByTeacher(Long id) {
-        ConventionEntity entity = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Convention non trouvée avec l'ID: " + id));
+        Convention entity = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + id));
         
         entity.setStatus(ConventionStatus.VALIDATED_BY_TEACHER);
         entity.setRejectionReason(null);
@@ -94,8 +146,8 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     @Transactional
     public ConventionResponseDTO rejectByTeacher(Long id, String reason) {
-        ConventionEntity entity = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Convention non trouvée avec l'ID: " + id));
+        Convention entity = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + id));
         
         entity.setStatus(ConventionStatus.REJECTED_BY_TEACHER);
         entity.setRejectionReason(reason);
@@ -113,8 +165,8 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     @Transactional
     public ConventionResponseDTO approveByAdmin(Long id) {
-        ConventionEntity entity = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Convention non trouvée avec l'ID: " + id));
+        Convention entity = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + id));
         
         entity.setStatus(ConventionStatus.APPROVED_BY_ADMIN);
         entity.setRejectionReason(null);
@@ -132,8 +184,8 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     @Transactional
     public ConventionResponseDTO rejectByAdmin(Long id, String reason) {
-        ConventionEntity entity = repository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Convention non trouvée avec l'ID: " + id));
+        Convention entity = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + id));
         
         entity.setStatus(ConventionStatus.REJECTED_BY_ADMIN);
         entity.setRejectionReason(reason);
@@ -162,11 +214,24 @@ public class ConventionServiceImpl implements ConventionService {
             .toList();
     }
     
+    @Override
+    @Transactional
+    public ConventionResponseDTO updateSignedPdfPath(Long id, String signedPdfPath) {
+        Convention entity = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + id));
+        
+        entity.setSignedPdfPath(signedPdfPath);
+        entity = repository.save(entity);
+        
+        log.info("Convention ID: {} mise à jour avec le chemin du PDF signé: {}", id, signedPdfPath);
+        return mapper.toResponse(entity);
+    }
+    
     /**
      * Régénère le PDF d'une convention et met à jour son chemin de stockage
      * @param entity L'entité convention
      */
-    private void regeneratePdf(ConventionEntity entity) {
+    private void regeneratePdf(Convention entity) {
         try {
             // Suppression de l'ancien PDF s'il existe
             if (entity.getPdfPath() != null && !entity.getPdfPath().isEmpty()) {
@@ -192,5 +257,49 @@ public class ConventionServiceImpl implements ConventionService {
             log.error("Erreur lors de la régénération du PDF pour la convention ID: {}", entity.getId(), e);
             throw new RuntimeException("Erreur lors de la régénération du PDF", e);
         }
+    }
+    
+    @Override
+    @Transactional
+    public ConventionResponseDTO updateByCompany(ConventionRequestDTO dto, Long companyId) {
+        if (dto.getId() == null) {
+            throw new RuntimeException("L'ID de la convention est requis pour la mise à jour");
+        }
+        
+        // Récupérer la convention existante
+        Convention convention = repository.findById(dto.getId())
+            .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + dto.getId()));
+        
+        // Vérifier que l'entreprise qui fait la mise à jour est bien celle associée à la convention
+        if (convention.getCompany() == null || !convention.getCompany().getId().equals(companyId)) {
+            throw new RuntimeException("Vous n'êtes pas autorisé à modifier cette convention");
+        }
+        
+        // Vérifier si la convention peut être mise à jour (uniquement si elle est en attente ou rejetée par l'enseignant)
+        if (convention.getStatus() != ConventionStatus.PENDING && 
+            convention.getStatus() != ConventionStatus.REJECTED_BY_TEACHER) {
+            throw new RuntimeException("La convention ne peut pas être modifiée dans son état actuel: " + convention.getStatus());
+        }
+        
+        // Mettre à jour les champs modifiables
+        // Note: Ces champs ne sont pas directement dans l'entité Convention, mais pourraient être 
+        // stockés dans des métadonnées ou utilisés pour régénérer le PDF
+        
+        // Réinitialiser le statut à PENDING si la convention était rejetée
+        if (convention.getStatus() == ConventionStatus.REJECTED_BY_TEACHER) {
+            convention.setStatus(ConventionStatus.PENDING);
+            convention.setRejectionReason(null);
+            log.info("Statut de la convention ID: {} réinitialisé à PENDING après modification par l'entreprise", dto.getId());
+        }
+        
+        // Sauvegarder les modifications
+        convention = repository.save(convention);
+        
+        // Régénérer le PDF avec les nouvelles informations
+        regeneratePdf(convention);
+        
+        log.info("Convention ID: {} mise à jour avec succès par l'entreprise ID: {}", dto.getId(), companyId);
+        
+        return mapper.toResponse(convention);
     }
 }

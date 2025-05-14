@@ -19,7 +19,6 @@ public interface ConventionService {
     ConventionResponseDTO rejectByAdmin(Long id, String reason);
     
     /**
-     * Récupère une convention par son ID
      * @param id L'ID de la convention
      * @return La convention ou null si non trouvée
      */
@@ -30,4 +29,21 @@ public interface ConventionService {
      * @return La liste des conventions
      */
     List<ConventionResponseDTO> getAllConventions();
+    
+    /**
+     * Met à jour le chemin du PDF signé d'une convention
+     * @param id L'ID de la convention
+     * @param signedPdfPath Le chemin du PDF signé
+     * @return La convention mise à jour
+     */
+    ConventionResponseDTO updateSignedPdfPath(Long id, String signedPdfPath);
+    
+    /**
+     * Permet à l'entreprise de mettre à jour une convention avant validation
+     * @param dto Les données de mise à jour
+     * @param companyId L'ID de l'entreprise qui fait la mise à jour
+     * @return La convention mise à jour
+     * @throws RuntimeException si la convention n'est pas modifiable ou si l'entreprise n'est pas autorisée
+     */
+    ConventionResponseDTO updateByCompany(ConventionRequestDTO dto, Long companyId);
 }
