@@ -25,6 +25,8 @@ public class ConventionResponseDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private ConventionStatus status;
+    private String pdfPath;
+  
 
     public ConventionResponseDTO(Long id, String title, String description, String location, List<String> skills,
             Integer length, String companyName, String studentName, LocalDate startDate, LocalDate endDate) {

@@ -13,6 +13,7 @@ public class ConventionMapper {
         responseDTO.setStudentName(""); // This needs to be fetched from student service
         responseDTO.setCompanyName(""); // This needs to be fetched from company service
         responseDTO.setStatus(entity.getStatus());
+        responseDTO.setPdfPath(entity.getPdfPath());
         // Other fields need to be set based on your business logic
         
         return responseDTO;

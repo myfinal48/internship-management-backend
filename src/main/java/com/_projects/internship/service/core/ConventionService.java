@@ -18,5 +18,16 @@ public interface ConventionService {
     ConventionResponseDTO approveByAdmin(Long id);
     ConventionResponseDTO rejectByAdmin(Long id, String reason);
     
-    //A completer avec d'autres services si necessaire
+    /**
+     * Récupère une convention par son ID
+     * @param id L'ID de la convention
+     * @return La convention ou null si non trouvée
+     */
+    ConventionResponseDTO getConventionById(Long id);
+    
+    /**
+     * Récupère toutes les conventions
+     * @return La liste des conventions
+     */
+    List<ConventionResponseDTO> getAllConventions();
 }
