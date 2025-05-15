@@ -1,0 +1,26 @@
+services:
+  internship-app:
+    image: internship-app
+    build: .
+    env_file: .env
+    environment:
+      - PORT=${PORT}
+    ports:
+      - "8888:${PORT:-8888}"
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file: .env
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USERNAME}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+    command: server /data --console-address ":9001"
+
+
+volumes:
+  minio_data:

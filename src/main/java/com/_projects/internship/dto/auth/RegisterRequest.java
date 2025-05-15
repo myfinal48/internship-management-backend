@@ -36,4 +36,7 @@ public class RegisterRequest {
 
     @NotNull(message = "Role cannot be null")
     private Role role; // Expecting ADMIN, USER
+
+    @NotNull(message="Sector can not be null")
+    private Long sectorId;
 }
