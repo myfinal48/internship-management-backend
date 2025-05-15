@@ -28,7 +28,7 @@ public class ConventionPdfGenerationService {
      * Génère un document PDF pour une convention de stage
      * @param convention L'entité convention
      * @return Le contenu du PDF sous forme de tableau d'octets
-     * @throws RuntimeException si une erreur survient lors de la génération du PDF
+     * @throws PdfGenerationException si une erreur survient lors de la génération du PDF
      */
     public byte[] generateConventionPdf(Convention convention) {
         try (PDDocument document = new PDDocument();
