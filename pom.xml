@@ -84,6 +84,13 @@
 			<version>3.0.2</version>
 		</dependency>
 
+		<!-- OBJECT Storage: MinIO SDK -->
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>8.5.9</version>
+		</dependency>
+
 		<!-- JWT Dependencies -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
