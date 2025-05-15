@@ -5,7 +5,6 @@ import com._projects.internship.model.core.Convention;
 import com._projects.internship.dto.core.ConventionResponseDTO;
 
 import java.util.ArrayList;
-import java.time.LocalDate;
 
 @Component
 public class ConventionMapper {
