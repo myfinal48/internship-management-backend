@@ -13,10 +13,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ApplicationResponseDTO {
     private Long id;
-    private Long studentId;
-    private Long offerId;
-    private String cvPath;
-    private String coverLetterPath;
+    private String firstName;
+    private String lastName;
+    private String offerTitle;
     private ApplicationStatus status;
     private LocalDateTime applicationDate;
 }

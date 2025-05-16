@@ -11,12 +11,11 @@ import com._projects.internship.model.security.User;
 
 @Component
 public class ApplicationMapper {
+    
     public static Application toEntity(ApplicationRequestDTO dto, User student, InternshipOffer offer, String cvPath, String coverLetterPath) {
         return Application.builder()
             .student(student)
             .offer(offer)
-            .cvPath(cvPath)
-            .coverLetterPath(coverLetterPath)
             .status(ApplicationStatus.PENDING)
             .build();
     }
@@ -24,10 +23,9 @@ public class ApplicationMapper {
     public static ApplicationResponseDTO toResponseDto(Application application) {
         return new ApplicationResponseDTO(
             application.getId(),
-            application.getStudent().getId(),
-            application.getOffer().getId(),
-            application.getCvPath(),
-            application.getCoverLetterPath(),
+            application.getStudent().getFirstName(),
+            application.getStudent().getLastName(),
+            application.getOffer().getTitle(),
             application.getStatus(),
             application.getApplicationDate()
         );

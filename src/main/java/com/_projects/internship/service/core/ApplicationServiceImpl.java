@@ -13,6 +13,7 @@ import com._projects.internship.dto.core.ApplicationResponseDTO;
 import com._projects.internship.exceptions.core.DuplicateApplicationException;
 import com._projects.internship.exceptions.core.ResourceNotFoundException;
 import com._projects.internship.exceptions.core.StorageException;
+import com._projects.internship.mapper.core.ApplicationMapper;
 import com._projects.internship.model.core.Application;
 import com._projects.internship.model.core.ApplicationStatus;
 import com._projects.internship.model.security.Role;
@@ -104,14 +105,33 @@ public class ApplicationServiceImpl implements ApplicationService {
             .toList();
     }
 
+
+
     @Override
     @Transactional(readOnly = true)
     public List<ApplicationResponseDTO> getByCompanyId(Long companyId) {
+    // 1) Vérifier que l’ID correspond bien à un utilisateur existant
+    User company = userRepository.findById(companyId)
+        .orElseThrow(() -> new ResourceNotFoundException(
+            "Company not found with id " + companyId
+        )); // ← Ligne ajoutée
+
+        // 2) Vérifier que cet utilisateur a bien le rôle COMPANY
+        if (!Role.COMPANY.equals(company.getRole())) {
+            throw new SecurityException(
+                "User with id " + companyId + " is not a company"
+            ); // ← Ligne ajoutée
+        }
+         // 3) Récupérer uniquement les candidatures liées à cette company
         return applicationRepository.findByOfferCompanyId(companyId)
             .stream()
             .map(this::mapToResponseDTO)
             .toList();
     }
+
+
+
+
 
     @Override
     @Transactional(readOnly = true)
@@ -218,15 +238,21 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
 
+    // Après, dans ApplicationServiceImpl :
     private ApplicationResponseDTO mapToResponseDTO(Application app) {
-        return ApplicationResponseDTO.builder()
-            .id(app.getId())
-            .studentId(app.getStudent().getId())
-            .offerId(app.getOffer().getId())
-            .cvPath(app.getCvPath())
-            .coverLetterPath(app.getCoverLetterPath())
-            .status(app.getStatus())
-            .applicationDate(app.getApplicationDate())
-            .build();
+        return ApplicationMapper.toResponseDto(app);
     }
+
+
+    // private ApplicationResponseDTO mapToResponseDTO(Application app) {
+    //     return ApplicationResponseDTO.builder()
+    //         .id(app.getId())
+    //         .studentId(app.getStudent().getId())
+    //         .offerId(app.getOffer().getId())
+    //         .cvPath(app.getCvPath())
+    //         .coverLetterPath(app.getCoverLetterPath())
+    //         .status(app.getStatus())
+    //         .applicationDate(app.getApplicationDate())
+    //         .build();
+    // }
 }

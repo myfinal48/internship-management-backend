@@ -25,10 +25,6 @@ import lombok.RequiredArgsConstructor;
 public class ApplicationController {
     private final ApplicationService applicationService;
 
-    /**
-     * Creates a new application (POST).
-    */
-
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApplicationResponseDTO> createApplication(
@@ -42,38 +38,27 @@ public class ApplicationController {
             .body(applicationService.apply(dto, cv, coverLetter));
     }
 
-
-    /**
-     * Retrieves all applications.
-     */
     @GetMapping
-    @PreAuthorize("hasRole('COMPANY') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ApplicationResponseDTO>> getAllApplications() {
         List<ApplicationResponseDTO> list = applicationService.getAll();
         return ResponseEntity.ok(list);
     }
 
-    /**
-     * Retrieves all applications for a given company.
-     */
     @GetMapping("/company/{id}")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsByCompanyId(
-        @PathVariable Long companyId) {
-        return ResponseEntity.ok(applicationService.getByCompanyId(companyId));
+        @PathVariable Long id) {
+        return ResponseEntity.ok(applicationService.getByCompanyId(id));
     }
 
-    /**
-     * Retrieves all applications for a given job offer.
-     */
     @GetMapping("/offer/{id}")
-    @PreAuthorize("hasRole('COMPANY') or hasRole('STUDENT')")
+    @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsByOfferId(
-        @PathVariable Long offerId) {
-        return ResponseEntity.ok(applicationService.getByOfferId(offerId));
+        @PathVariable Long id) {
+        return ResponseEntity.ok(applicationService.getByOfferId(id));
     }
 
-    //
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('COMPANY')")
     public ResponseEntity<ApplicationResponseDTO> updateApplicationStatus(
@@ -82,21 +67,15 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.updateStatus(id, status));
     }
 
-
-
-    /**
-     * Updates an application (before validation).
-     */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<ApplicationResponseDTO> updateApplication(
         @PathVariable Long id,
-        @RequestParam("studentId") Long studentId,      // ← passe par query/form‑param
-        @RequestParam("offerId") Long offerId,          // ← idem
+        @RequestParam("studentId") Long studentId,   
+        @RequestParam("offerId") Long offerId,      
         @RequestPart(name = "cv",          required = false) MultipartFile cv,
         @RequestPart(name = "coverLetter", required = false) MultipartFile coverLetter
     ) {
-        // On reconstruit un DTO à partir des deux paramètres
         ApplicationRequestDTO dto = new ApplicationRequestDTO(studentId, offerId);
 
         ApplicationResponseDTO updated = applicationService
@@ -105,10 +84,6 @@ public class ApplicationController {
         return ResponseEntity.ok(updated);
     }
 
-
-    /**
-     * Deletes an application (only if not yet validated).
-     */
    @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Void> deleteApplication(
