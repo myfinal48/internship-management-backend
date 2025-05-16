@@ -21,7 +21,7 @@ public class ConventionStorageService {
 
     private final MinioClient minioClient;
 
-    @Value("${minio.bucket.name}")
+    @Value("${minio.bucket-name}")
     private String bucketName;
 
     /**
