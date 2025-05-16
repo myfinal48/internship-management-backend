@@ -18,22 +18,15 @@ import com._projects.internship.exceptions.core.StorageException;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * Implémentation ApplicationStorageService qui utilise MinIO pour stocker
- * les CV et lettres de motivation.
- */
 @Service
 @RequiredArgsConstructor
-public class MinioApplicationStorageService implements ApplicationStorageService{
+public class MinioApplicationStorageService implements ApplicationStorageService {
 
     private final MinioClient minioClient;
 
     @Value("${minio.bucket-name}")
     private String bucketName;
 
-    /**
-     * Vérifie que le bucket existe et le crée si nécessaire.
-     */
     @PostConstruct
     public void init() {
         try {

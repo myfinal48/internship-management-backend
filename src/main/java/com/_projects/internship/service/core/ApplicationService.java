@@ -26,11 +26,6 @@ public interface ApplicationService {
 
     void delete(Long id, Long studentId);
 
-      /**
-     * Génère à la volée un ZIP contenant le CV et la lettre de motivation.
-     * @param applicationId l'ID de la candidature
-     * @param os le flux de sortie vers le client
-     */
     void streamApplicationZip(Long applicationId, OutputStream os) throws IOException;
 
 }
