@@ -7,6 +7,7 @@ import com._projects.internship.model.core.Application;
 import com._projects.internship.model.core.ApplicationStatus;
 import com._projects.internship.model.core.Convention;
 import com._projects.internship.model.core.ConventionStatus;
+import com._projects.internship.model.core.InternshipOffer;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.ApplicationRepository;
