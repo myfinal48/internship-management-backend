@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 
-@RequestMapping("${api.prefix}/conventions") // Chemin de base pour toutes les méthodes
+@RequestMapping("${api.prefix}/conventions")
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Convention Management")
@@ -44,10 +44,7 @@ public class ConventionController {
         }
         
         try {
-            // Sauvegarder le fichier PDF signé
             String signedPdfPath = conventionStorageService.saveSignedConvention(id, file);
-            
-            // Mettre à jour l'entité convention avec le chemin du PDF signé
             ConventionResponseDTO updatedConvention = conventionService.updateSignedPdfPath(id, signedPdfPath);
             
             if (updatedConvention == null) {
@@ -56,16 +53,12 @@ public class ConventionController {
             
             return ResponseEntity.ok(updatedConvention);
         } catch (Exception e) {
-            e.printStackTrace(); // Log the exception for debugging
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     
-    /**
-     * Récupère une convention par son ID
-     * @param id L'ID de la convention
-     * @return La convention
-     */
+
     @GetMapping("/{id}")
     @Operation(summary = "Récupérer une convention par ID")
     public ResponseEntity<ConventionResponseDTO> getById(@PathVariable Long id) {
@@ -76,10 +69,7 @@ public class ConventionController {
         return ResponseEntity.ok(convention);
     }
     
-    /**
-     * Récupère toutes les conventions
-     * @return La liste des conventions
-     */
+
     @GetMapping
     @Operation(summary = "Récupérer toutes les conventions")
     public ResponseEntity<List<ConventionResponseDTO>> getAll() {
@@ -106,25 +96,21 @@ public class ConventionController {
         return ResponseEntity.ok(conventionService.rejectByAdmin(id, body.get("reason")));
     }
     
-    /**
-     * Télécharge le PDF d'une convention
-     * @param id L'ID de la convention
-     * @return Le fichier PDF
-     */
+
     @GetMapping("/{id}/download-pdf")
     @Operation(summary = "Télécharger le PDF d'une convention")
     public ResponseEntity<byte[]> downloadPdf(@PathVariable Long id) {
-        // Récupérer la convention
+
         ConventionResponseDTO convention = conventionService.getConventionById(id);
         
         if (convention == null || convention.getPdfPath() == null || convention.getPdfPath().isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         
-        // Récupérer le contenu du PDF
+
         byte[] pdfContent = conventionStorageService.getFile(convention.getPdfPath());
         
-        // Configurer les en-têtes de la réponse
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("attachment", "convention_" + id + ".pdf");
@@ -133,13 +119,7 @@ public class ConventionController {
         return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }
     
-    /**
-     * Permet à l'entreprise de mettre à jour une convention avant validation
-     * @param id L'ID de la convention
-     * @param companyId L'ID de l'entreprise qui fait la mise à jour
-     * @param dto Les données de mise à jour
-     * @return La convention mise à jour
-     */
+
     @PutMapping("/{id}/update-by-company/{companyId}")
     @Operation(summary = "Mettre à jour une convention par l'entreprise avant validation")
     public ResponseEntity<ConventionResponseDTO> updateByCompany(
@@ -147,7 +127,7 @@ public class ConventionController {
             @PathVariable Long companyId,
             @RequestBody ConventionRequestDTO dto) {
         
-        // S'assurer que l'ID dans le chemin correspond à celui dans le DTO
+
         if (!id.equals(dto.getId())) {
             return ResponseEntity.badRequest().build();
         }
@@ -156,7 +136,7 @@ public class ConventionController {
             ConventionResponseDTO updatedConvention = conventionService.updateByCompany(dto, companyId);
             return ResponseEntity.ok(updatedConvention);
         } catch (RuntimeException e) {
-            // Log l'exception
+
             e.printStackTrace();
             
             // Retourner une réponse appropriée en fonction du message d'erreur

@@ -3,9 +3,13 @@ package com._projects.internship.service.core;
 import com._projects.internship.dto.core.ConventionRequestDTO;
 import com._projects.internship.dto.core.ConventionResponseDTO;
 import com._projects.internship.mapper.core.ConventionMapper;
+import com._projects.internship.model.core.Application;
+import com._projects.internship.model.core.ApplicationStatus;
 import com._projects.internship.model.core.Convention;
 import com._projects.internship.model.core.ConventionStatus;
+import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
+import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.repository.core.ConventionRepository;
 import com._projects.internship.repository.security.UserRepository;
 
@@ -29,6 +33,7 @@ public class ConventionServiceImpl implements ConventionService {
     private final ConventionPdfGenerationService conventionPdfGenerationService;
     private final ConventionStorageService conventionStorageService;
     private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
 
     @Override
     @Transactional
@@ -84,17 +89,28 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     @Transactional
     public ConventionResponseDTO createFromApplication(Long applicationId) {
+        // Récupérer l'application (candidature) par son ID
+        Application application = applicationRepository.findById(applicationId)
+            .orElseThrow(() -> new RuntimeException("Candidature non trouvée avec l'ID: " + applicationId));
+        
+        // Vérifier que la candidature est acceptée
+        if (application.getStatus() != ApplicationStatus.ACCEPTED) {
+            throw new RuntimeException("Impossible de créer une convention pour une candidature qui n'est pas acceptée. Statut actuel: " + application.getStatus());
+        }
+        
         // Création de l'entité convention
         Convention entity = new Convention();
         
-        // Récupérer les utilisateurs par ID
-        // Note: Ces IDs doivent être remplacés par les vraies données de l'application
-        User student = userRepository.findById(1L)
-            .orElseThrow(() -> new RuntimeException("Étudiant non trouvé avec l'ID: 1"));
-        User company = userRepository.findById(1L)
-            .orElseThrow(() -> new RuntimeException("Entreprise non trouvée avec l'ID: 1"));
-        User teacher = userRepository.findById(1L)
-            .orElseThrow(() -> new RuntimeException("Enseignant non trouvé avec l'ID: 1"));
+        // Récupérer les utilisateurs depuis la candidature
+        User student = application.getStudent();
+        User company = application.getOffer().getCompany();
+        
+        // Pour l'enseignant, on peut soit utiliser un enseignant par défaut, soit le récupérer d'une autre manière
+        // Ici, nous utilisons un ID par défaut (à adapter selon votre logique métier)
+        User teacher = userRepository.findByRole(Role.TEACHER)
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Aucun enseignant trouvé dans le système"));
         
         entity.setStudent(student);
         entity.setCompany(company);
@@ -119,7 +135,7 @@ public class ConventionServiceImpl implements ConventionService {
         entity.setPdfPath(pdfPath);
         entity = repository.save(entity);
         
-        log.info("Convention créée avec succès pour l'application ID: {}, PDF stocké à: {}", applicationId, pdfPath);
+        log.info("Convention créée avec succès pour la candidature ID: {}, PDF stocké à: {}", applicationId, pdfPath);
         
         return mapper.toResponse(entity);
     }

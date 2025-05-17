@@ -43,7 +43,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // The endpoint is where clients will connect to the WebSocket server.
         // Allow all origins for now - restrict this in production!
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // TODO: Restrict origins in production!
+                .setAllowedOriginPatterns("*") 
                 .withSockJS();
     }
 
