@@ -39,12 +39,12 @@ public class ConventionMapper {
         responseDTO.setPdfPath(entity.getPdfPath());
         responseDTO.setSignedPdfPath(entity.getSignedPdfPath());
         
-        // Set default values for other fields to avoid nulls
-        responseDTO.setTitle("");
-        responseDTO.setDescription("");
-        responseDTO.setLocation("");
-        responseDTO.setSkills(new ArrayList<>());
-        responseDTO.setLength(0);
+        // Transférer les informations de l'offre de stage
+        responseDTO.setTitle(entity.getTitle() != null ? entity.getTitle() : "");
+        responseDTO.setDescription(entity.getDescription() != null ? entity.getDescription() : "");
+        responseDTO.setLocation(entity.getLocation() != null ? entity.getLocation() : "");
+        responseDTO.setSkills(entity.getSkills() != null ? entity.getSkills() : new ArrayList<>());
+        responseDTO.setLength(entity.getLength() != null ? entity.getLength() : 0);
         
         // Ensure PDF paths are not null
         if (responseDTO.getPdfPath() == null) {
@@ -58,9 +58,10 @@ public class ConventionMapper {
         // Set dates
         responseDTO.setStartDate(entity.getCreationDate());
         
-        // Calculate end date (for example, 6 months after creation date)
+        // Calculate end date based on the length of the internship
         if (entity.getCreationDate() != null) {
-            responseDTO.setEndDate(entity.getCreationDate().plusMonths(6));
+            int months = entity.getLength() != null && entity.getLength() > 0 ? entity.getLength() : 6;
+            responseDTO.setEndDate(entity.getCreationDate().plusMonths(months));
         }
         
         return responseDTO;

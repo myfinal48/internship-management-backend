@@ -1,6 +1,7 @@
 package com._projects.internship.model.core;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com._projects.internship.model.security.User;
 
@@ -12,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.ElementCollection;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +41,15 @@ public class Convention {
     @ManyToOne
     @JoinColumn(name = "teacher_id")
     private User teacher;
-
+    
+    private String title;
+    private String description;
+    private String location;
+    
+    @ElementCollection
+    private List<String> skills;
+    
+    private Integer length;
   
     private LocalDate creationDate;
 

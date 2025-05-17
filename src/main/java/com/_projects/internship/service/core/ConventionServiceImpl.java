@@ -112,11 +112,21 @@ public class ConventionServiceImpl implements ConventionService {
             .findFirst()
             .orElseThrow(() -> new RuntimeException("Aucun enseignant trouvé dans le système"));
         
+        // Récupérer les informations de l'offre de stage
+        InternshipOffer offer = application.getOffer();
+        
         entity.setStudent(student);
         entity.setCompany(company);
         entity.setTeacher(teacher);
         entity.setCreationDate(LocalDate.now());
         entity.setStatus(ConventionStatus.PENDING);
+        
+        // Transférer les informations de l'offre vers la convention
+        entity.setTitle(offer.getTitle());
+        entity.setDescription(offer.getDescription());
+        entity.setLocation(offer.getLocation());
+        entity.setSkills(offer.getSkills());
+        entity.setLength(offer.getLength());
 
         // Sauvegarde initiale pour obtenir l'ID
         entity = repository.save(entity);
