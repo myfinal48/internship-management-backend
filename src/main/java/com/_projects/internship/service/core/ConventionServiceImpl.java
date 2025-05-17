@@ -309,8 +309,11 @@ public class ConventionServiceImpl implements ConventionService {
         }
         
         // Mettre à jour les champs modifiables
-        // Note: Ces champs ne sont pas directement dans l'entité Convention, mais pourraient être 
-        // stockés dans des métadonnées ou utilisés pour régénérer le PDF
+        convention.setTitle(dto.getTitle());
+        convention.setDescription(dto.getDescription());
+        convention.setLocation(dto.getLocation());
+        convention.setSkills(dto.getSkills());
+        convention.setLength(dto.getLength());
         
         // Réinitialiser le statut à PENDING si la convention était rejetée
         if (convention.getStatus() == ConventionStatus.REJECTED_BY_TEACHER) {
