@@ -4,8 +4,7 @@ import java.util.List;
 
 import com._projects.internship.model.core.Sector;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
