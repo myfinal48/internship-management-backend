@@ -34,7 +34,7 @@ public class InternshipApplication {
 			  .lastName("User")
 			  .username("admin")
 			  .email(adminEmail)
-				.password(passwordEncoder.encode("password")) // Encode the password
+				.password(passwordEncoder.encode("password"))
 			  .role(Role.ADMIN)
 			  .sector(sectorRepository.findById(2L).get())
 			  .build();
@@ -43,7 +43,7 @@ public class InternshipApplication {
 			  .lastName("Parker")
 			  .username("teacher")
 			  .email("teacher@teacher.com")
-			  .password(passwordEncoder.encode("password")) // Encode the password
+			  .password(passwordEncoder.encode("password"))
 			  .role(Role.TEACHER)
 			  .sector(sectorRepository.findById(1L).get())
 			  .build();
@@ -52,7 +52,7 @@ public class InternshipApplication {
 			  .lastName("Parker")
 			  .username("student")
 			  .email("student@student.com")
-			  .password(passwordEncoder.encode("password")) // Encode the password
+			  .password(passwordEncoder.encode("password"))
 			  .role(Role.STUDENT)
 			  .sector(sectorRepository.findById(1L).get())
 			  .build();
