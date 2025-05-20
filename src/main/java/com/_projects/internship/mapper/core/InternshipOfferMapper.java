@@ -3,7 +3,6 @@ package com._projects.internship.mapper.core;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com._projects.internship.dto.core.CreateInternshipOfferRequestDTO;
 import com._projects.internship.dto.core.GetInternshipOfferResponseDTO;

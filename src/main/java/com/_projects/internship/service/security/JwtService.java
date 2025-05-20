@@ -18,7 +18,6 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // TODO: Externalize this secret key and make it much stronger!
     // Generate a secure key, e.g., using: https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator
     // Store it securely, e.g., in application properties or environment variables.
     @Value("${application.security.jwt.secret-key:placeholderSecretKeyThatIsVeryLongAndSecure1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz}") // Example placeholder

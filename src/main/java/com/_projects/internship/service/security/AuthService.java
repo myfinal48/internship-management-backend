@@ -3,7 +3,6 @@ package com._projects.internship.service.security;
 import com._projects.internship.dto.auth.AuthResponse;
 import com._projects.internship.dto.auth.LoginRequest;
 import com._projects.internship.dto.auth.RegisterRequest;
-import com._projects.internship.exceptions.core.ResourceNotFoundException;
 import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.SectorRepository;
 import com._projects.internship.repository.security.UserRepository;
