@@ -5,6 +5,7 @@ package com._projects.internship.model.security;
  */
 public enum Role {
     ADMIN,
-    TEACHER,
+    COMPANY,
     STUDENT,
+    TEACHER
 }

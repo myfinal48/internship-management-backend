@@ -1,5 +1,7 @@
 package com._projects.internship.model.security;
 
+import com._projects.internship.model.core.Sector;
+import com._projects.internship.model.notification.Notification;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -15,7 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Data // Lombok: Generates getters, setters, toString, equals, hashCode
 @Builder // Lombok: Builder pattern
@@ -49,6 +53,10 @@ public class User implements UserDetails {
 
     @NotBlank(message = "Last name cannot be blank")
     private String lastName;
+
+    @ManyToOne
+    @JoinColumn(name = "sector_id")
+    private Sector sector;
 
     @NotNull(message = "Role cannot be null")
     @Enumerated(EnumType.STRING) // Store enum names (ADMIN, USER) in the DB
