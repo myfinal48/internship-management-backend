@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ApplicationResponseDTO {
     private Long id;
+    private Long offerId;
     private String firstName;
     private String lastName;
     private String offerTitle;
