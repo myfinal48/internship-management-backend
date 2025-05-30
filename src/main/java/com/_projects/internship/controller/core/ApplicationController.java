@@ -105,7 +105,7 @@ public class ApplicationController {
 
 
     @GetMapping("/{id}/bundle")
-    @PreAuthorize("hasRole('COMPANY')")
+    @PreAuthorize("hasRole('COMPANY') or hasRole('STUDENT')")
     public ResponseEntity<StreamingResponseBody> downloadApplicationBundle(@PathVariable Long id) {
         StreamingResponseBody stream = outputStream -> {
             applicationService.streamApplicationZip(id, outputStream);
