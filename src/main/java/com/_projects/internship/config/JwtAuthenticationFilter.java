@@ -1,6 +1,5 @@
 package com._projects.internship.config;
 
-
 import com._projects.internship.service.security.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,11 +18,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor // Lombok: Constructor injection
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService; // Spring Security's UserDetailsService
+    private final UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(
@@ -34,51 +33,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String userEmail; // Change variable name for clarity
+        final String userEmail;
 
-        // 1. Check if Authorization header exists and starts with "Bearer "
+        // Vérifie si le header Authorization commence bien par "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response); // Continue to the next filter
+            filterChain.doFilter(request, response); // Poursuit la chaîne de filtres
             return;
         }
 
-        // 2. Extract JWT token (remove "Bearer ")
+        // Extrait le JWT
         jwt = authHeader.substring(7);
 
         try {
-            // 3. Extract user email from JWT (assuming JwtService is updated or already does this)
-            userEmail = jwtService.extractUsername(jwt); // Keep using extractUsername, but ensure it returns email
+            // Extrait l'email ou le username du token
+            userEmail = jwtService.extractUsername(jwt);
 
-            // 4. Check if email exists and user is not already authenticated
+            // Si l'utilisateur n'est pas encore authentifié
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                // 5. Load UserDetails from the database using the email
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail); // Pass email here
+                // Récupère les informations de l'utilisateur
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-                // 6. Validate the token
+                // Vérifie si le token est valide
                 if (jwtService.isTokenValid(jwt, userDetails)) {
-                    // 7. Create authentication token
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null, // Credentials are not needed as we use JWT
-                            userDetails.getAuthorities()
-                    );
-                    // 8. Set details from the request
+                    // Crée un objet d'authentification
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+
+                    // Ajoute les détails supplémentaires à partir de la requête HTTP
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
-                    // 9. Update SecurityContextHolder
+
+                    // Met à jour le contexte de sécurité de Spring
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
         } catch (Exception e) {
-            // Log the exception (e.g., token expired, malformed, etc.)
-            // logger.error("Cannot set user authentication: {}", e);
-            // Optionally clear the context if authentication failed due to token issues
+            // Log l'erreur et vide le contexte de sécurité
+            System.err.println("Erreur lors de l'authentification JWT : " + e.getMessage());
+            e.printStackTrace();
             SecurityContextHolder.clearContext();
         }
 
-
-        // 10. Continue the filter chain
+        // Continue la chaîne de filtres
         filterChain.doFilter(request, response);
     }
 }

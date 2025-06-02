@@ -1,6 +1,7 @@
 package com._projects.internship.dto.core;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com._projects.internship.model.core.ConventionStatus;
 
@@ -9,7 +10,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 
-import java.util.List;
+/**
+ * DTO pour la réponse de la convention.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,5 +32,3 @@ public class ConventionResponseDTO {
     private String pdfPath;
     private String signedPdfPath;
 }
-
-

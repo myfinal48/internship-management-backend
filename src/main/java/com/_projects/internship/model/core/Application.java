@@ -53,5 +53,9 @@ public class Application {
     private ApplicationStatus status = ApplicationStatus.PENDING;
 
     @Column(nullable = false)
-    private LocalDateTime applicationDate = LocalDateTime.now();  
+    private LocalDateTime applicationDate = LocalDateTime.now();
+
+    public boolean getConvention() {
+            return false;
+    }
 }

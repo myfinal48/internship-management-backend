@@ -129,4 +129,8 @@ public class ConventionPdfGenerationService {
             throw new RuntimeException("Erreur lors de la génération du PDF", e);
         }
     }
+
+    public String generatePdf(Convention savedConvention) {
+        return null;
+    }
 }
