@@ -41,11 +41,12 @@ public class InternshipOffer {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
-  public Object getStartDate() {
-          return  null;
+
+  public LocalDateTime getStartDate() {
+    return null;
   }
 
-  public Object getEndDate() {
-      return null;
+  public LocalDateTime getEndDate() {
+    return null;
   }
 }

@@ -1,5 +1,6 @@
 package com._projects.internship.dto.core;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -19,6 +20,9 @@ public class ConventionRequestDTO{
     private Integer length;
     private Long companyId;
     private Long studentId;
-    private String startDate;
-    private String endDate;
+    private Long teacherId;
+    private LocalDate startDate;
+    private LocalDate endDate;
+
+
 }

@@ -1,8 +1,6 @@
 package com._projects.internship.controller.core;
 
-import ch.qos.logback.classic.Logger;
-import com._projects.internship.model.core.Convention;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -78,6 +76,25 @@ public class ConventionController {
     @Operation(summary = "Récupérer toutes les conventions")
     public ResponseEntity<List<ConventionResponseDTO>> getAll() {
         return ResponseEntity.ok(conventionService.getAllConventions());
+    }
+
+    @GetMapping("/teacher/{teacherId}")
+    @Operation(summary = "Récupérer toutes les conventions assignées à un enseignant")
+    public ResponseEntity<List<ConventionResponseDTO>> getConventionsByTeacher(@PathVariable Long teacherId) {
+        List<ConventionResponseDTO> conventions = conventionService.getConventionsByTeacher(teacherId);
+        return ResponseEntity.ok(conventions);
+    }
+
+    @GetMapping("/company/{companyId}")
+    @Operation(summary = "Récupérer toutes les conventions d'une entreprise")
+    public ResponseEntity<List<ConventionResponseDTO>> getConventionsByCompany(@PathVariable Long companyId) {
+        try {
+            List<ConventionResponseDTO> conventions = conventionService.getConventionsByCompany(companyId);
+            return ResponseEntity.ok(conventions);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("/{id}/validate-by-teacher")

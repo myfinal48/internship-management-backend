@@ -133,4 +133,8 @@ public class ConventionPdfGenerationService {
     public String generatePdf(Convention savedConvention) {
         return null;
     }
+
+    public void deletePdf(String pdfPath) {
+
+    }
 }
