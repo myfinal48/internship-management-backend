@@ -75,6 +75,15 @@ public class ConventionStorageService {
     }
 
     public String saveSignedConvention(Long conventionId, MultipartFile file) {
+        // Vérification du fichier
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Le fichier ne peut pas être vide");
+        }
+        
+        if (file.getContentType() == null || !"application/pdf".equals(file.getContentType())) {
+            throw new IllegalArgumentException("Le fichier doit être au format PDF");
+        }
+        
         String path = SIGNED_CONVENTIONS_PATH + "convention_" + conventionId + ".pdf";
 
         try {

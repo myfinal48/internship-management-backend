@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.net.ssl.SSLSession;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,8 +31,8 @@ public class Convention {
     private User company;
 
     @ManyToOne
-    @JoinColumn(name = "teacher_id")
-    private User teacher;
+    @JoinColumn(name = "internship_offer_id")
+    private InternshipOffer internshipOffer;
 
     private String title;
     private String description;
@@ -49,10 +50,8 @@ public class Convention {
 
     private String rejectionReason;
 
-    // Chemin du PDF original (généré)
     private String pdfPath;
 
-    // Chemin du PDF signé
     private String signedPdfPath;
 
     private LocalDate internshipStartDate;
@@ -64,5 +63,9 @@ public class Convention {
 
     public void setInternshipDescription(String description) {
 
+    }
+
+    public SSLSession getTeacher() {
+        return null;
     }
 }

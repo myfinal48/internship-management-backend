@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @Entity
@@ -33,7 +32,7 @@ public class Application {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-     private Long id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
@@ -56,33 +55,11 @@ public class Application {
     @Column(nullable = false)
     private LocalDateTime applicationDate = LocalDateTime.now();
 
-
-    public boolean getConvention() {
-        return false;
-    }
-
-    public String getDescription() {
-        return offer != null ? offer.getDescription() : null;
-    }
-
-
-    public java.util.List<String> getSkills() {
-        return offer != null ? offer.getSkills() : null;
-    }
-
-    public Integer getLength() {
-        return offer != null ? offer.getLength() : null;
-    }
-
-
-    public User getCompany() {
-        return offer != null ? offer.getCompany() : null;
-    }
-    public InternshipOffer  getInternshipOffer() {
-            return offer;
+    public InternshipOffer getInternshipOffer() {
+        return null;
     }
 
     public User getTeacher() {
-        return null;
+            return null;
     }
 }

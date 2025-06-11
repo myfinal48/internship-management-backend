@@ -40,13 +40,4 @@ public class InternshipOffer {
   private User company;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
-
-
-  public LocalDateTime getStartDate() {
-    return null;
-  }
-
-  public LocalDateTime getEndDate() {
-    return null;
-  }
 }

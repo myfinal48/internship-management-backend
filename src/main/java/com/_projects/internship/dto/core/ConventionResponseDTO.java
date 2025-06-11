@@ -10,9 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 
-/**
- * DTO pour la réponse de la convention.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,11 +22,20 @@ public class ConventionResponseDTO {
     private String location;
     private List<String> skills;
     private Integer length;
+    
+    private Long companyId;
     private String companyName;
+    
+    private Long studentId;
     private String studentName;
+    
+    private Long sectorId;
+    private String sectorName;
+    
     private LocalDate startDate;
     private LocalDate endDate;
     private ConventionStatus status;
     private String pdfPath;
     private String signedPdfPath;
+    private String rejectionReason;
 }

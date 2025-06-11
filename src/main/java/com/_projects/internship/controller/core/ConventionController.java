@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import com._projects.internship.dto.user.TeacherDTO;
 
 @RequestMapping("${api.prefix}/conventions")
 @RestController
@@ -27,14 +28,20 @@ public class ConventionController {
     private final ConventionStorageService conventionStorageService;
 
     @PostMapping("/create-from-application/{applicationId}")
+    @Operation(summary = "Créer une convention après l'acceptation de la demande")
     public ResponseEntity<ConventionResponseDTO> createConventionFromApplication(@PathVariable Long applicationId) {
         try {
             ConventionResponseDTO response = conventionService.createFromApplication(applicationId);
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
+            // Erreur de validation (candidature non acceptée)
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Application non trouvée")) {
+                return ResponseEntity.notFound().build();
+            }
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -43,20 +50,16 @@ public class ConventionController {
     public ResponseEntity<ConventionResponseDTO> uploadSignedPdf(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
-        if (file.isEmpty() || file.getContentType() == null || !"application/pdf".equals(file.getContentType())) {
-            return ResponseEntity.badRequest().build();
-        }
-
         try {
             String signedPdfPath = conventionStorageService.saveSignedConvention(id, file);
             ConventionResponseDTO updatedConvention = conventionService.updateSignedPdfPath(id, signedPdfPath);
-
-            if (updatedConvention == null) {
+            return ResponseEntity.ok(updatedConvention);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Convention non trouvée")) {
                 return ResponseEntity.notFound().build();
             }
-
-            return ResponseEntity.ok(updatedConvention);
-        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -79,9 +82,9 @@ public class ConventionController {
     }
 
     @GetMapping("/teacher/{teacherId}")
-    @Operation(summary = "Récupérer toutes les conventions assignées à un enseignant")
-    public ResponseEntity<List<ConventionResponseDTO>> getConventionsByTeacher(@PathVariable Long teacherId) {
-        List<ConventionResponseDTO> conventions = conventionService.getConventionsByTeacher(teacherId);
+    @Operation(summary = "Récupérer toutes les conventions dans le secteur d'un enseignant")
+    public ResponseEntity<List<ConventionResponseDTO>> getConventionsForTeacher(@PathVariable Long teacherId) {
+        List<ConventionResponseDTO> conventions = conventionService.getConventionsForTeacher(teacherId);
         return ResponseEntity.ok(conventions);
     }
 
@@ -118,19 +121,12 @@ public class ConventionController {
     }
 
     @GetMapping("/{id}/download-pdf")
+    @Operation(summary = "Télécharger le PDF d'une convention")
     public ResponseEntity<byte[]> downloadPdf(@PathVariable("id") Long conventionId) {
-        ConventionResponseDTO conventionDTO = conventionService.getConventionById(conventionId);
-        if (conventionDTO == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        String filePath = conventionDTO.getSignedPdfPath();
-        if (filePath == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         try {
-            byte[] content = conventionStorageService.getFile(filePath);
+            // Les vérifications sont maintenant dans le service
+            byte[] content = conventionService.getConventionPdf(conventionId);
+            
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
             headers.setContentDisposition(ContentDisposition.builder("inline")
@@ -138,7 +134,13 @@ public class ConventionController {
                     .build());
 
             return new ResponseEntity<>(content, headers, HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
+            // Aucun PDF disponible
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Convention non trouvée")) {
+                return ResponseEntity.notFound().build();
+            }
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
