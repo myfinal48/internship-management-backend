@@ -1,5 +1,6 @@
 package com._projects.internship.service;
 
+import com._projects.internship.dto.auth.UpdateUserRequest;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
 
@@ -9,7 +10,7 @@ public interface UserService {
 
     User createUser(User user);
 
-    User updateUser(Long userId, User user);
+    User updateUser(Long userId, UpdateUserRequest user);
 
     void deleteUser(Long userId);
 
