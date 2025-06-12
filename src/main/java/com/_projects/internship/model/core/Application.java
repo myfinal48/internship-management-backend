@@ -56,10 +56,6 @@ public class Application {
     private LocalDateTime applicationDate = LocalDateTime.now();
 
     public InternshipOffer getInternshipOffer() {
-        return null;
-    }
-
-    public User getTeacher() {
-            return null;
+        return this.offer;
     }
 }

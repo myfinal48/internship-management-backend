@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.net.ssl.SSLSession;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -34,6 +33,10 @@ public class Convention {
     @JoinColumn(name = "internship_offer_id")
     private InternshipOffer internshipOffer;
 
+    @ManyToOne
+    @JoinColumn(name = "teacher_id")
+    private User teacher;
+
     private String title;
     private String description;
     private String location;
@@ -56,16 +59,4 @@ public class Convention {
 
     private LocalDate internshipStartDate;
     private LocalDate internshipEndDate;
-
-    public void setInternshipTitle(String title) {
-
-    }
-
-    public void setInternshipDescription(String description) {
-
-    }
-
-    public SSLSession getTeacher() {
-        return null;
-    }
 }

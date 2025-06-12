@@ -55,7 +55,7 @@ public class ConventionServiceImpl implements ConventionService {
 
         convention.setStudent(application.getStudent());
         convention.setCompany(offer.getCompany());
-        
+
         // Stocker la référence à l'offre de stage au lieu d'un enseignant spécifique
         convention.setInternshipOffer(offer);
 
@@ -138,7 +138,7 @@ public class ConventionServiceImpl implements ConventionService {
         if (signedPdfPath == null || signedPdfPath.isEmpty()) {
             throw new IllegalArgumentException("Le chemin du PDF signé ne peut pas être vide");
         }
-        
+
         Convention convention = getConventionOrThrow(id);
         convention.setSignedPdfPath(signedPdfPath);
         convention = repository.save(convention);
@@ -188,17 +188,17 @@ public class ConventionServiceImpl implements ConventionService {
         // Récupérer l'enseignant pour connaître son secteur
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Enseignant non trouvé avec l'ID: " + teacherId));
-        
+
         if (teacher.getSector() == null) {
             log.warn("L'enseignant ID: {} n'a pas de secteur assigné", teacherId);
             return List.of(); // Retourne une liste vide si l'enseignant n'a pas de secteur
         }
-        
+
         // Récupérer toutes les conventions dans le secteur de l'enseignant
         List<Convention> conventions = repository.findByInternshipOfferSectorId(teacher.getSector().getId());
-        log.info("Récupération de {} conventions dans le secteur '{}' pour l'enseignant ID: {}", 
+        log.info("Récupération de {} conventions dans le secteur '{}' pour l'enseignant ID: {}",
                 conventions.size(), teacher.getSector().getName(), teacherId);
-        
+
         return conventions.stream()
                 .map(mapper::toResponse)
                 .toList();
@@ -236,30 +236,30 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     public byte[] getConventionPdf(Long conventionId) {
         Convention convention = getConventionOrThrow(conventionId);
-        
+
         String filePath = convention.getSignedPdfPath();
         if (filePath == null || filePath.isEmpty()) {
             throw new IllegalStateException("Aucun PDF signé n'est disponible pour cette convention");
         }
-        
+
         return conventionStorageService.getFile(filePath);
     }
-    
+
     public ConventionStorageService getConventionStorageService() {
         return conventionStorageService;
     }
-    
+
     @Override
     public List<TeacherDTO> getAvailableTeachers() {
         List<User> teachers = userRepository.findByRole(Role.TEACHER);
         log.info("Récupération de {} enseignants disponibles", teachers.size());
-        
+
         return teachers.stream()
                 .map(teacher -> TeacherDTO.builder()
                         .id(teacher.getId())
                         .firstName(teacher.getFirstName() != null ? teacher.getFirstName() : "")
                         .lastName(teacher.getLastName() != null ? teacher.getLastName() : "")
-                        .fullName((teacher.getFirstName() != null ? teacher.getFirstName() : "") + " " + 
+                        .fullName((teacher.getFirstName() != null ? teacher.getFirstName() : "") + " " +
                                  (teacher.getLastName() != null ? teacher.getLastName() : ""))
                         .email(teacher.getEmail())
                         .build())
