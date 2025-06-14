@@ -1,6 +1,7 @@
 package com._projects.internship.service.core;
 
 import io.minio.*;
+import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,9 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * Service pour le stockage de fichiers de conventions avec MinIO/S3
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,27 +22,23 @@ public class ConventionStorageService {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
-    /**
-     * Stocke un fichier de convention dans MinIO/S3
-     * @param fileContent Le contenu du fichier
-     * @param fileName Le nom du fichier
-     * @param contentType Le type MIME du fichier
-     * @return Le chemin d'accès au fichier stocké
-     */
+    private static final String CONVENTIONS_PATH = "conventions/";
+    private static final String SIGNED_CONVENTIONS_PATH = "signed-conventions/";
+
+    private void ensureBucketExists() throws Exception {
+        boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+        if (!bucketExists) {
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            log.info("Bucket '{}' créé avec succès", bucketName);
+        }
+    }
+
     public String storeFile(byte[] fileContent, String fileName, String contentType) {
         try {
-            // Vérifier si le bucket existe, sinon le créer
-            boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
-            if (!bucketExists) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-                log.info("Bucket '{}' créé avec succès", bucketName);
-            }
+            ensureBucketExists();
+            String uniqueFileName = UUID.randomUUID() + "_" + fileName;
+            String filePath = CONVENTIONS_PATH + uniqueFileName;
 
-            // Générer un nom de fichier unique
-            String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
-            String filePath = "conventions/" + uniqueFileName;
-
-            // Télécharger le fichier
             try (InputStream inputStream = new ByteArrayInputStream(fileContent)) {
                 minioClient.putObject(
                         PutObjectArgs.builder()
@@ -56,19 +50,15 @@ public class ConventionStorageService {
                 );
             }
 
-            log.info("Fichier de convention '{}' téléchargé avec succès", filePath);
+            log.info("Fichier '{}' stocké avec succès", filePath);
             return filePath;
+
         } catch (Exception e) {
-            log.error("Erreur lors du stockage du fichier de convention", e);
-            throw new RuntimeException("Erreur lors du stockage du fichier de convention", e);
+            log.error("Erreur lors du stockage du fichier '{}'", fileName, e);
+            throw new RuntimeException("Erreur lors du stockage du fichier", e);
         }
     }
 
-    /**
-     * Récupère un fichier de convention depuis MinIO/S3
-     * @param filePath Le chemin d'accès au fichier
-     * @return Le contenu du fichier
-     */
     public byte[] getFile(String filePath) {
         try {
             GetObjectResponse response = minioClient.getObject(
@@ -77,54 +67,48 @@ public class ConventionStorageService {
                             .object(filePath)
                             .build()
             );
-
-            // Lire le contenu du fichier
             return response.readAllBytes();
         } catch (Exception e) {
-            log.error("Erreur lors de la récupération du fichier de convention '{}'", filePath, e);
-            throw new RuntimeException("Erreur lors de la récupération du fichier de convention", e);
+            log.error("Erreur lors de la récupération du fichier '{}'", filePath, e);
+            throw new RuntimeException("Erreur lors de la récupération du fichier", e);
         }
     }
 
-    /**
-     * Sauvegarde une convention signée (PDF) dans MinIO/S3
-     * @param conventionId L'ID de la convention
-     * @param file Le fichier PDF signé
-     * @return Le chemin d'accès au fichier stocké
-     */
     public String saveSignedConvention(Long conventionId, MultipartFile file) {
-        String path = "signed-conventions/convention_" + conventionId + ".pdf";
+        // Vérification du fichier
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Le fichier ne peut pas être vide");
+        }
+        
+        if (file.getContentType() == null || !"application/pdf".equals(file.getContentType())) {
+            throw new IllegalArgumentException("Le fichier doit être au format PDF");
+        }
+        
+        String path = SIGNED_CONVENTIONS_PATH + "convention_" + conventionId + ".pdf";
+
         try {
-            // Vérifier si le bucket existe, sinon le créer
-            boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
-            if (!bucketExists) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-                log.info("Bucket '{}' créé avec succès", bucketName);
-            }
-            
+            ensureBucketExists();
+
             try (InputStream is = file.getInputStream()) {
                 minioClient.putObject(
-                    PutObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(path)
-                        .stream(is, file.getSize(), -1)
-                        .contentType(file.getContentType())
-                        .build()
+                        PutObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(path)
+                                .stream(is, file.getSize(), -1)
+                                .contentType(file.getContentType())
+                                .build()
                 );
-                log.info("Convention signée ID: {} téléchargée avec succès", conventionId);
             }
+
+            log.info("Convention signée ID: {} stockée avec succès sous '{}'", conventionId, path);
             return path;
+
         } catch (Exception e) {
             log.error("Erreur lors de l'upload du PDF signé pour la convention ID: {}", conventionId, e);
             throw new RuntimeException("Erreur lors de l'upload du PDF signé", e);
         }
     }
-// ...existing code...
 
-    /**
-     * Supprime un fichier de convention de MinIO/S3
-     * @param filePath Le chemin d'accès au fichier
-     */
     public void deleteFile(String filePath) {
         try {
             minioClient.removeObject(
@@ -133,10 +117,10 @@ public class ConventionStorageService {
                             .object(filePath)
                             .build()
             );
-            log.info("Fichier de convention '{}' supprimé avec succès", filePath);
+            log.info("Fichier '{}' supprimé avec succès", filePath);
         } catch (Exception e) {
-            log.error("Erreur lors de la suppression du fichier de convention '{}'", filePath, e);
-            throw new RuntimeException("Erreur lors de la suppression du fichier de convention", e);
+            log.error("Erreur lors de la suppression du fichier '{}'", filePath, e);
+            throw new RuntimeException("Erreur lors de la suppression du fichier", e);
         }
     }
 }
