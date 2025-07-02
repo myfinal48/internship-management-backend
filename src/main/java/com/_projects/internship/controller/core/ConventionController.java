@@ -15,8 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import com._projects.internship.dto.user.TeacherDTO;
+
 
 @RequestMapping("${api.prefix}/conventions")
 @RestController
@@ -29,9 +28,9 @@ public class ConventionController {
 
     @PostMapping("/create-from-application/{applicationId}")
     @Operation(summary = "Créer une convention après l'acceptation de la demande")
-    public ResponseEntity<ConventionResponseDTO> createConventionFromApplication(@PathVariable Long applicationId) {
+    public ResponseEntity<ConventionResponseDTO> createConventionFromApplication(@PathVariable Long applicationId, @RequestBody ConventionRequestDTO dto) {
         try {
-            ConventionResponseDTO response = conventionService.createFromApplication(applicationId);
+            ConventionResponseDTO response = conventionService.createFromApplication(applicationId, dto);
             return ResponseEntity.ok(response);
         } catch (IllegalStateException e) {
             // Erreur de validation (candidature non acceptée)
@@ -129,7 +128,7 @@ public class ConventionController {
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.builder("inline")
+            headers.setContentDisposition(ContentDisposition.builder("attachment")
                     .filename("convention_" + conventionId + ".pdf")
                     .build());
 
@@ -172,5 +171,11 @@ public class ConventionController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
         }
+    }
+
+    @PutMapping("/{id}/regenerate-pdf")
+    public ResponseEntity<Void> regeneratePdf(@PathVariable Long id) {
+        conventionService.regeneratePdfForConvention(id);
+        return ResponseEntity.ok().build();
     }
 }

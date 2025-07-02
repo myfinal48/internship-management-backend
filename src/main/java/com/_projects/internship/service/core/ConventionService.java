@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ConventionService {
 
-    ConventionResponseDTO createFromApplication(Long applicationId);
+    ConventionResponseDTO createFromApplication(Long applicationId, ConventionRequestDTO dto);
 
     ConventionResponseDTO validateByTeacher(Long id);
 
@@ -35,4 +35,6 @@ public interface ConventionService {
     
 
     List<com._projects.internship.dto.user.TeacherDTO> getAvailableTeachers();
+
+    void regeneratePdfForConvention(Long id);
 }

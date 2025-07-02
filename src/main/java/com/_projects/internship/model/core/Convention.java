@@ -38,7 +38,10 @@ public class Convention {
     private User teacher;
 
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
     private String location;
 
     @ElementCollection
@@ -59,4 +62,22 @@ public class Convention {
 
     private LocalDate internshipStartDate;
     private LocalDate internshipEndDate;
+
+    @ManyToOne
+    @JoinColumn(name = "application_id", unique = true, nullable = false)
+    private Application application;
+
+    private String companyName;
+    private String companyAddress;
+    private String supervisorName;
+    private String supervisorEmail;
+
+    @Column(columnDefinition = "TEXT")
+    private String objectives;
+
+    private Integer weeklyHours;
+
+    @ManyToOne
+    @JoinColumn(name = "company_info_id")
+    private CompanyInfo companyInfo;
 }

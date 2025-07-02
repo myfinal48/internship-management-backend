@@ -23,6 +23,15 @@ public class ConventionRequestDTO{
     private Long teacherId;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String companyName;
+    private String companyAddress;
+    private String supervisorName;
+    private String supervisorEmail;
+    private String objectives;
+    private Integer weeklyHours;
+    private Long offerId;
+    private Long applicationId;
+    private Long companyInfoId;
 
 
 }

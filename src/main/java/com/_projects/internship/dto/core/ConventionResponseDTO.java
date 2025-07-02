@@ -25,6 +25,7 @@ public class ConventionResponseDTO {
     
     private Long companyId;
     private String companyName;
+    private String companyAddress;
     
     private Long studentId;
     private String studentName;
@@ -38,4 +39,10 @@ public class ConventionResponseDTO {
     private String pdfPath;
     private String signedPdfPath;
     private String rejectionReason;
+    private Long applicationId;
+    
+    private String supervisorName;
+    private String supervisorEmail;
+    private String objectives;
+    private Integer weeklyHours;
 }

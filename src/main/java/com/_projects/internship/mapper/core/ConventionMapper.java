@@ -30,12 +30,14 @@ public class ConventionMapper {
 
         // Entreprise
         if (entity.getCompany() != null) {
-            String companyName = entity.getCompany().getFirstName() != null ? entity.getCompany().getFirstName() : "";
-            dto.setCompanyName(companyName);
             dto.setCompanyId(entity.getCompany().getId());
-        } else {
-            dto.setCompanyName("");
         }
+        dto.setCompanyName(entity.getCompanyName());
+        dto.setCompanyAddress(entity.getCompanyAddress());
+        dto.setSupervisorName(entity.getSupervisorName());
+        dto.setSupervisorEmail(entity.getSupervisorEmail());
+        dto.setObjectives(entity.getObjectives());
+        dto.setWeeklyHours(entity.getWeeklyHours());
         
         // Information sur le secteur de l'offre de stage
         if (entity.getInternshipOffer() != null && entity.getInternshipOffer().getSector() != null) {
@@ -64,6 +66,11 @@ public class ConventionMapper {
             dto.setEndDate(entity.getCreationDate().plusMonths(months));
         }
 
+        // Application liée
+        if (entity.getApplication() != null) {
+            dto.setApplicationId(entity.getApplication().getId());
+        }
+
         return dto;
     }
 
@@ -83,8 +90,13 @@ public class ConventionMapper {
         // Entreprise
         if (entity.getCompany() != null) {
             dto.setCompanyId(entity.getCompany().getId());
-            dto.setCompanyName(entity.getCompany().getFirstName());
         }
+        dto.setCompanyName(entity.getCompanyName());
+        dto.setCompanyAddress(entity.getCompanyAddress());
+        dto.setSupervisorName(entity.getSupervisorName());
+        dto.setSupervisorEmail(entity.getSupervisorEmail());
+        dto.setObjectives(entity.getObjectives());
+        dto.setWeeklyHours(entity.getWeeklyHours());
         
         // Étudiant
         if (entity.getStudent() != null) {
@@ -104,6 +116,11 @@ public class ConventionMapper {
         dto.setPdfPath(entity.getPdfPath());
         dto.setSignedPdfPath(entity.getSignedPdfPath());
         dto.setRejectionReason(entity.getRejectionReason());
+
+        // Application liée
+        if (entity.getApplication() != null) {
+            dto.setApplicationId(entity.getApplication().getId());
+        }
 
         return dto;
     }
