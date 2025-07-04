@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/company-info")
+@RequestMapping(CompanyInfoController.API_PREFIX)
 @RequiredArgsConstructor
 public class CompanyInfoController {
+    public static final String API_PREFIX = "/api/company-info";
     private final CompanyInfoService companyInfoService;
 
     @PostMapping
