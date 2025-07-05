@@ -1,0 +1,36 @@
+package com._projects.internship.dto.auth;
+
+import com._projects.internship.model.security.Role;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class UpdateUserRequest {
+  @NotBlank(message = "Username cannot be blank")
+  @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+  private String username;
+
+  @NotBlank(message = "Email cannot be blank")
+  @Email(message = "Email should be valid")
+  private String email;
+
+  @NotBlank(message = "First name cannot be blank")
+  private String firstName;
+
+  @NotBlank(message = "Last name cannot be blank")
+  private String lastName;
+
+  @NotNull(message = "Role cannot be null")
+  private Role role; 
+
+  @NotNull(message = "Sector can not be null")
+  private Long sectorId;
+}

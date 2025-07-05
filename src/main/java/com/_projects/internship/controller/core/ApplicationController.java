@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import com._projects.internship.dto.core.ApplicationRequestDTO;
 import com._projects.internship.dto.core.ApplicationResponseDTO;
 import com._projects.internship.model.core.ApplicationStatus;
+import com._projects.internship.model.security.User;
 import com._projects.internship.service.core.ApplicationService;
 
 import org.springframework.http.HttpHeaders;
@@ -43,6 +45,19 @@ public class ApplicationController {
     public ResponseEntity<List<ApplicationResponseDTO>> getAllApplications() {
         List<ApplicationResponseDTO> list = applicationService.getAll();
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/my-applications")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('COMPANY')")
+    public ResponseEntity<List<ApplicationResponseDTO>> getMyApplications(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        if (user.getRole().name().equals("STUDENT")) {
+            return ResponseEntity.ok(applicationService.getByStudentId(user.getId()));
+        } else if (user.getRole().name().equals("COMPANY")) {
+            return ResponseEntity.ok(applicationService.getByCompanyId(user.getId()));
+        } else {
+            return ResponseEntity.status(403).build();
+        }
     }
 
     @GetMapping("/company/{id}")
@@ -95,7 +110,7 @@ public class ApplicationController {
 
 
     @GetMapping("/{id}/bundle")
-    @PreAuthorize("hasRole('COMPANY')")
+    @PreAuthorize("hasRole('COMPANY') or hasRole('STUDENT')")
     public ResponseEntity<StreamingResponseBody> downloadApplicationBundle(@PathVariable Long id) {
         StreamingResponseBody stream = outputStream -> {
             applicationService.streamApplicationZip(id, outputStream);
@@ -107,5 +122,12 @@ public class ApplicationController {
             .body(stream);
     }
 
+    @GetMapping("/company-applications")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsForCompany(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        List<ApplicationResponseDTO> applications = applicationService.getByCompanyId(user.getId());
+        return ResponseEntity.ok(applications);
+    }
 
 }

@@ -31,6 +31,9 @@ public class InternshipOfferMapper {
     dto.setLocation(offer.getLocation());
     dto.setSkills(offer.getSkills());
     dto.setLength(offer.getLength());
+    dto.setStatus(offer.getStatus());
+    dto.setCreatedAt(offer.getCreatedAt());
+    dto.setUpdatedAt(offer.getUpdatedAt());
     dto.setCompanyName(offer.getCompany().getUsername());
     return dto;
   }

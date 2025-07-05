@@ -1,6 +1,7 @@
 package com._projects.internship.controller;
 
 import com._projects.internship.dto.auth.RegisterRequest;
+import com._projects.internship.dto.auth.UpdateUserRequest;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.SectorRepository;
@@ -61,7 +62,7 @@ public class AdminUserController {
     // PUT /api/v1/admin/users/{id} - Update an existing user
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')") // Ensure only ADMIN can access these
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest user) {
         User updatedUser = userService.updateUser(id, user);
         return ResponseEntity.ok(updatedUser);
     }

@@ -1,5 +1,6 @@
 package com._projects.internship.controller.core;
 
+import com._projects.internship.dto.core.CreateSectorRequestData;
 import com._projects.internship.model.core.Sector;
 import com._projects.internship.service.core.SectorService;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,8 @@ public class SectorController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Sector> save(@RequestBody String name) throws Exception{
-        return ResponseEntity.ok(sectorService.createSector(name));
+    public ResponseEntity<Sector> save(@RequestBody CreateSectorRequestData dto) throws Exception{
+        return ResponseEntity.ok(sectorService.createSector(dto));
     }
     @GetMapping
     public ResponseEntity<List<Sector>> getAll(){
@@ -26,8 +27,8 @@ public class SectorController {
     }
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Sector> update(@PathVariable Long id,@RequestBody String name) throws Exception{
-        return ResponseEntity.ok(sectorService.updateSector(id,name));
+    public ResponseEntity<Sector> update(@PathVariable Long id,@RequestBody CreateSectorRequestData dto) throws Exception{
+        return ResponseEntity.ok(sectorService.updateSector(id,dto));
     }
 
     @GetMapping("/{id}")

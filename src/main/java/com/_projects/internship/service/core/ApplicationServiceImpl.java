@@ -39,31 +39,31 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     @Transactional
     public ApplicationResponseDTO apply(ApplicationRequestDTO dto,
-                                        MultipartFile cv,
-                                        MultipartFile coverLetter) {
+            MultipartFile cv,
+            MultipartFile coverLetter) {
         User student = userRepository.findById(dto.getStudentId())
-            .orElseThrow(() -> new ResourceNotFoundException("Student not found with id " + dto.getStudentId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Student not found with id " + dto.getStudentId()));
         if (!Role.STUDENT.equals(student.getRole())) {
             throw new IllegalArgumentException("User is not a student");
         }
         var offer = internshipOfferRepository.findById(dto.getOfferId())
-            .orElseThrow(() -> new ResourceNotFoundException("Offer not found with id " + dto.getOfferId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Offer not found with id " + dto.getOfferId()));
 
         if (applicationRepository.existsByStudentIdAndOfferId(dto.getStudentId(), dto.getOfferId())) {
             throw new DuplicateApplicationException("Application already exists");
         }
 
         Application app = Application.builder()
-            .student(student)
-            .offer(offer)
-            .status(ApplicationStatus.PENDING)
-            .applicationDate(LocalDateTime.now())
-            .cvPath("")
-            .coverLetterPath("")
-            .build();
+                .student(student)
+                .offer(offer)
+                .status(ApplicationStatus.PENDING)
+                .applicationDate(LocalDateTime.now())
+                .cvPath("")
+                .coverLetterPath("")
+                .build();
         app = applicationRepository.save(app);
 
-        String cvPath   = appStorage.store(cv, app.getId());
+        String cvPath = appStorage.store(cv, app.getId());
         String coverPath = appStorage.store(coverLetter, app.getId());
 
         app.setCvPath(cvPath);
@@ -77,7 +77,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Transactional
     public ApplicationResponseDTO updateStatus(Long id, ApplicationStatus status) {
         Application app = applicationRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Application not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found with id " + id));
 
         app.setStatus(status);
         Application updated = applicationRepository.save(app);
@@ -88,6 +88,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Transactional(readOnly = true)
     public List<ApplicationResponseDTO> getAll() {
         return applicationRepository.findAll()
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ApplicationResponseDTO> getByStudentId(Long studentId) {
+        User student = userRepository.findById(studentId)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found with id " + studentId));
+        if (!Role.STUDENT.equals(student.getRole())) {
+            throw new IllegalArgumentException("User is not a student");
+        }
+        return applicationRepository.findByStudentId(studentId)
             .stream()
             .map(this::mapToResponseDTO)
             .toList();
@@ -97,33 +111,33 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Transactional(readOnly = true)
     public List<ApplicationResponseDTO> getByCompanyId(Long companyId) {
         User company = userRepository.findById(companyId)
-            .orElseThrow(() -> new ResourceNotFoundException("Company not found with id " + companyId));
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id " + companyId));
         if (!Role.COMPANY.equals(company.getRole())) {
             throw new SecurityException("User with id " + companyId + " is not a company");
         }
         return applicationRepository.findByOfferCompanyId(companyId)
-            .stream()
-            .map(this::mapToResponseDTO)
-            .toList();
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ApplicationResponseDTO> getByOfferId(Long offerId) {
         return applicationRepository.findByOfferId(offerId)
-            .stream()
-            .map(this::mapToResponseDTO)
-            .toList();
+                .stream()
+                .map(this::mapToResponseDTO)
+                .toList();
     }
 
     @Override
     @Transactional
     public ApplicationResponseDTO updateApplication(Long id,
-                                                    ApplicationRequestDTO dto,
-                                                    MultipartFile cv,
-                                                    MultipartFile coverLetter) {
+            ApplicationRequestDTO dto,
+            MultipartFile cv,
+            MultipartFile coverLetter) {
         Application app = applicationRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Application not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found with id " + id));
         if (app.getStatus() != ApplicationStatus.PENDING) {
             throw new IllegalStateException("Cannot update an application that is already processed.");
         }
@@ -148,7 +162,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Transactional
     public void delete(Long id, Long studentId) {
         Application app = applicationRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Application not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found with id " + id));
         if (!app.getStudent().getId().equals(studentId)) {
             throw new SecurityException("You are not authorized to delete this application.");
         }
@@ -164,8 +178,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Transactional(readOnly = true)
     public void streamApplicationZip(Long applicationId, OutputStream os) throws IOException {
         Application app = applicationRepository.findById(applicationId)
-            .orElseThrow(() -> new ResourceNotFoundException("Application not found " + applicationId));
-        byte[] cvBytes  = appStorage.load(app.getCvPath());
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found " + applicationId));
+        byte[] cvBytes = appStorage.load(app.getCvPath());
         byte[] letBytes = appStorage.load(app.getCoverLetterPath());
 
         try (ZipOutputStream zip = new ZipOutputStream(os)) {

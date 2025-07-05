@@ -19,7 +19,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "notification", indexes = {
-        @Index(name = "idx_notification_user_status", columnList = "user_id, status"),
+        @Index(name = "idx_notification_sender_status", columnList = "sender_id, status"),
         @Index(name = "idx_notification_created_at", columnList = "createdAt")
 })
 @NoArgsConstructor

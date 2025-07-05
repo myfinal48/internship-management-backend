@@ -23,6 +23,7 @@ public class ApplicationMapper {
     public static ApplicationResponseDTO toResponseDto(Application application) {
         return new ApplicationResponseDTO(
             application.getId(),
+            application.getOffer().getId(),
             application.getStudent().getFirstName(),
             application.getStudent().getLastName(),
             application.getOffer().getTitle(),

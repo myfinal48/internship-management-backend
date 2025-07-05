@@ -17,6 +17,8 @@ public interface ApplicationService {
     ApplicationResponseDTO updateStatus(Long id, ApplicationStatus status);
 
     List<ApplicationResponseDTO> getAll();
+
+    List<ApplicationResponseDTO> getByStudentId(Long studentId);
     
     List<ApplicationResponseDTO> getByCompanyId(Long companyId);
 

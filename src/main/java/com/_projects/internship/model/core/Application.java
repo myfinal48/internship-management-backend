@@ -32,7 +32,7 @@ public class Application {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-     private Long id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
@@ -53,5 +53,9 @@ public class Application {
     private ApplicationStatus status = ApplicationStatus.PENDING;
 
     @Column(nullable = false)
-    private LocalDateTime applicationDate = LocalDateTime.now();  
+    private LocalDateTime applicationDate = LocalDateTime.now();
+
+    public InternshipOffer getInternshipOffer() {
+        return this.offer;
+    }
 }
