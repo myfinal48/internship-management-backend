@@ -48,11 +48,16 @@ public class ApplicationController {
     }
 
     @GetMapping("/my-applications")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('COMPANY')")
     public ResponseEntity<List<ApplicationResponseDTO>> getMyApplications(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        List<ApplicationResponseDTO> applications = applicationService.getByStudentId(user.getId());
-        return ResponseEntity.ok(applications);
+        if (user.getRole().name().equals("STUDENT")) {
+            return ResponseEntity.ok(applicationService.getByStudentId(user.getId()));
+        } else if (user.getRole().name().equals("COMPANY")) {
+            return ResponseEntity.ok(applicationService.getByCompanyId(user.getId()));
+        } else {
+            return ResponseEntity.status(403).build();
+        }
     }
 
     @GetMapping("/company/{id}")
@@ -117,5 +122,12 @@ public class ApplicationController {
             .body(stream);
     }
 
+    @GetMapping("/company-applications")
+    @PreAuthorize("hasRole('COMPANY')")
+    public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsForCompany(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        List<ApplicationResponseDTO> applications = applicationService.getByCompanyId(user.getId());
+        return ResponseEntity.ok(applications);
+    }
 
 }

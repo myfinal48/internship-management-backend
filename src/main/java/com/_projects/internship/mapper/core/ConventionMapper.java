@@ -18,7 +18,7 @@ public class ConventionMapper {
         ConventionResponseDTO dto = new ConventionResponseDTO();
         dto.setId(entity.getId());
 
-        // Étudiant
+        // Student
         if (entity.getStudent() != null) {
             String firstName = entity.getStudent().getFirstName() != null ? entity.getStudent().getFirstName() : "";
             String lastName = entity.getStudent().getLastName() != null ? entity.getStudent().getLastName() : "";
@@ -28,22 +28,22 @@ public class ConventionMapper {
             dto.setStudentName("");
         }
 
-        // Entreprise
         if (entity.getCompany() != null) {
-            String companyName = entity.getCompany().getFirstName() != null ? entity.getCompany().getFirstName() : "";
-            dto.setCompanyName(companyName);
             dto.setCompanyId(entity.getCompany().getId());
-        } else {
-            dto.setCompanyName("");
         }
+        dto.setCompanyName(entity.getCompanyName());
+        dto.setCompanyAddress(entity.getCompanyAddress());
+        dto.setSupervisorName(entity.getSupervisorName());
+        dto.setSupervisorEmail(entity.getSupervisorEmail());
+        dto.setObjectives(entity.getObjectives());
+        dto.setWeeklyHours(entity.getWeeklyHours());
         
-        // Information sur le secteur de l'offre de stage
+        // Sector info
         if (entity.getInternshipOffer() != null && entity.getInternshipOffer().getSector() != null) {
             dto.setSectorId(entity.getInternshipOffer().getSector().getId());
             dto.setSectorName(entity.getInternshipOffer().getSector().getName());
         }
 
-        // Informations convention
         dto.setStatus(entity.getStatus());
         dto.setPdfPath(entity.getPdfPath() != null ? entity.getPdfPath() : "");
         dto.setSignedPdfPath(entity.getSignedPdfPath() != null ? entity.getSignedPdfPath() : "");
@@ -64,6 +64,11 @@ public class ConventionMapper {
             dto.setEndDate(entity.getCreationDate().plusMonths(months));
         }
 
+        // Linked application
+        if (entity.getApplication() != null) {
+            dto.setApplicationId(entity.getApplication().getId());
+        }
+
         return dto;
     }
 
@@ -80,19 +85,23 @@ public class ConventionMapper {
         dto.setSkills(entity.getSkills());
         dto.setLength(entity.getLength());
         
-        // Entreprise
         if (entity.getCompany() != null) {
             dto.setCompanyId(entity.getCompany().getId());
-            dto.setCompanyName(entity.getCompany().getFirstName());
         }
+        dto.setCompanyName(entity.getCompanyName());
+        dto.setCompanyAddress(entity.getCompanyAddress());
+        dto.setSupervisorName(entity.getSupervisorName());
+        dto.setSupervisorEmail(entity.getSupervisorEmail());
+        dto.setObjectives(entity.getObjectives());
+        dto.setWeeklyHours(entity.getWeeklyHours());
         
-        // Étudiant
+        // Student
         if (entity.getStudent() != null) {
             dto.setStudentId(entity.getStudent().getId());
             dto.setStudentName(entity.getStudent().getFirstName() + " " + entity.getStudent().getLastName());
         }
         
-        // Information sur le secteur de l'offre de stage
+        // Sector info
         if (entity.getInternshipOffer() != null && entity.getInternshipOffer().getSector() != null) {
             dto.setSectorId(entity.getInternshipOffer().getSector().getId());
             dto.setSectorName(entity.getInternshipOffer().getSector().getName());
@@ -104,6 +113,11 @@ public class ConventionMapper {
         dto.setPdfPath(entity.getPdfPath());
         dto.setSignedPdfPath(entity.getSignedPdfPath());
         dto.setRejectionReason(entity.getRejectionReason());
+
+        // Linked application
+        if (entity.getApplication() != null) {
+            dto.setApplicationId(entity.getApplication().getId());
+        }
 
         return dto;
     }
@@ -120,7 +134,6 @@ public class ConventionMapper {
         entity.setLocation(dto.getLocation());
         entity.setSkills(dto.getSkills());
         entity.setLength(dto.getLength());
-
 
         return entity;
     }
