@@ -20,5 +20,9 @@ public interface UserService {
 
     List<User> getUsersByRole(Role role);
 
+    User findByUsername(String username);
+
+    User updateProfile(Long userId, String username, String firstName, String lastName, Long sectorId);
+
     // Potentially add methods for password reset, enabling/disabling users etc.
 }
