@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/user/dashboard") // change "user" in endpoint depending on role
+@RequestMapping("${api.prefix}/user/dashboard") // change "user" in endpoint depending on role
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('USER')") // Ensure only USER can access
+@PreAuthorize("hasRole('ADMIN') or hasRole('COMPANY') or hasRole('STUDENT') or hasRole('TEACHER')") // Allow all existing roles to access
 public class UserDashboardController {
 
     private final DashboardService dashboardService;

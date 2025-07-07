@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/staff") // New base path for staff-related info
+@RequestMapping("${api.prefix}/staff") // New base path for staff-related info
 @RequiredArgsConstructor
 public class StaffController {
 
@@ -22,7 +22,7 @@ public class StaffController {
 
     // Endpoint specifically for getting users, accessible by multiple roles
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')") // Allow relevant roles
+    @PreAuthorize("hasAnyRole('ADMIN', 'COMPANY', 'STUDENT', 'TEACHER')") // Allow all existing roles
     public ResponseEntity<List<User>> getAllStaff() {
         List<User> staff = userService.getAllUsers();
         // Consider returning a simpler DTO instead of the full User object if needed
@@ -31,7 +31,7 @@ public class StaffController {
 
     // Endpoint specifically for getting users, accessible by multiple roles
     @GetMapping("/{role}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')") // Allow relevant roles
+    @PreAuthorize("hasAnyRole('ADMIN', 'COMPANY', 'STUDENT', 'TEACHER')") // Allow all existing roles
     public ResponseEntity<List<User>> getStaffByRole(@PathVariable Role role) {
         List<User> staff = userService.getUsersByRole(role);
         // Consider returning a simpler DTO instead of the full User object if needed

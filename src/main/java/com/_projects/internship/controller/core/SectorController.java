@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/${api.prefix}/sectors")
+@RequestMapping("${api.prefix}/sectors")
 public class SectorController {
     private final SectorService sectorService;
 
