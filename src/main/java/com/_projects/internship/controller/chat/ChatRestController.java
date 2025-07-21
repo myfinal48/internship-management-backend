@@ -1,10 +1,12 @@
 package com._projects.internship.controller.chat;
 
+import com._projects.internship.dto.ErrorResponseDTO;
 import com._projects.internship.mapper.chat.ChatMessageDTO;
 import com._projects.internship.model.chat.ChatMessage;
 import com._projects.internship.model.chat.ChatMessageEntity;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
+import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.service.UserService;
 import com._projects.internship.service.chat.ChatMessageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,10 +33,11 @@ public class ChatRestController {
     private final ChatMessageService chatMessageService;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationRepository applicationRepository;
 
     @PostMapping
     @Operation(summary = "Send message", description = "Send a chat message to another user")
-    public ResponseEntity<ChatMessageDTO> sendMessage(
+    public ResponseEntity<?> sendMessage(
             @Valid @RequestBody SendMessageRequest request,
             Authentication authentication) {
 
@@ -42,6 +45,20 @@ public class ChatRestController {
         
         // Find recipient by username
         User recipient = userService.findByUsername(request.getRecipientName());
+        
+        // Vérifier si l'étudiant a postulé à une offre de l'entreprise avant d'envoyer un message
+        if (currentUser.getRole() == Role.STUDENT && recipient.getRole() == Role.COMPANY) {
+            boolean hasApplied = applicationRepository.existsByStudentIdAndOfferCompanyId(
+                currentUser.getId(), recipient.getId());
+            
+            if (!hasApplied) {
+                return ResponseEntity
+                    .status(403)
+                    .body(ErrorResponseDTO.forbidden(
+                        "Vous devez d'abord postuler à une offre de cette entreprise avant de pouvoir lui envoyer un message."
+                    ));
+            }
+        }
 
         // Crée le message à partir des données validées
         ChatMessage message = ChatMessage.builder()

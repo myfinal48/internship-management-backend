@@ -11,5 +11,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     List<Application> findByOfferCompanyId(Long companyId);
     List<Application> findByOfferId(Long offerId);
     boolean existsByStudentIdAndOfferId(Long studentId, Long offerId);
-
+    
+    // Vérifie si un étudiant a postulé à au moins une offre d'une entreprise
+    boolean existsByStudentIdAndOfferCompanyId(Long studentId, Long companyId);
 }
