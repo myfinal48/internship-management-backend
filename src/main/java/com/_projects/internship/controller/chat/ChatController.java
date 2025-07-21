@@ -1,6 +1,7 @@
 package com._projects.internship.controller.chat;
 
 import com._projects.internship.model.chat.ChatMessage;
+import com._projects.internship.model.chat.ChatMessageEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -30,13 +31,8 @@ public class ChatController {
             Principal principal
     ) {
         // Set the sender if not already set (use the principal's name)
-        if (chatMessage.getSender() == null) {
-            chatMessage.setSender(principal.getName());
-        }
-        
-        // Set timestamp if not already set
-        if (chatMessage.getTimestamp() == null) {
-            chatMessage.setTimestamp(Instant.now());
+        if (chatMessage.getSenderName() == null) {
+            chatMessage.setSenderName(principal.getName());
         }
 
         return chatMessage;
@@ -52,23 +48,18 @@ public class ChatController {
             Principal principal
     ) {
         // Set the sender if not already set (use the principal's name)
-        if (chatMessage.getSender() == null) {
-            chatMessage.setSender(principal.getName());
-        }
-
-        // Set timestamp if not already set
-        if (chatMessage.getTimestamp() == null) {
-            chatMessage.setTimestamp(Instant.now());
+        if (chatMessage.getSenderName() == null) {
+            chatMessage.setSenderName(principal.getName());
         }
 
         // Validate that recipient is specified for private messages
-        if (chatMessage.getRecipient() == null || chatMessage.getRecipient().trim().isEmpty()) {
+        if (chatMessage.getRecipientName() == null || chatMessage.getRecipientName().trim().isEmpty()) {
             throw new IllegalArgumentException("Recipient is required for private messages");
         }
 
         // Send it to the recipient's private queue
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getRecipient(),
+                chatMessage.getRecipientName(),
                 "/queue/private",
                 chatMessage
         );
@@ -95,10 +86,9 @@ public class ChatController {
         headerAccessor.getSessionAttributes().put("username", principal.getName());
 
         return ChatMessage.builder()
-                .type(ChatMessage.MessageType.JOIN)
-                .sender(principal.getName())
+                .type(ChatMessageEntity.MessageType.JOIN)
+                .senderName(principal.getName())
                 .content(principal.getName() + " joined the chat")
-                .timestamp(Instant.now())
                 .build();
     }
 
@@ -113,10 +103,9 @@ public class ChatController {
             Principal principal
     ) {
         return ChatMessage.builder()
-                .type(ChatMessage.MessageType.LEAVE)
-                .sender(principal.getName())
+                .type(ChatMessageEntity.MessageType.LEAVE)
+                .senderName(principal.getName())
                 .content(principal.getName() + " left the chat")
-                .timestamp(Instant.now())
                 .build();
     }
 }
