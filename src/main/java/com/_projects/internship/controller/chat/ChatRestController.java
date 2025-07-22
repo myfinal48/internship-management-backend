@@ -207,13 +207,7 @@ public class ChatRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/all")
-    @Operation(summary = "Delete all messages", description = "Delete all messages for the current user")
-    public ResponseEntity<Void> deleteAllMessages(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        chatMessageService.deleteAllMessagesForUser(currentUser.getId());
-        return ResponseEntity.noContent().build();
-    }
+
 
     @PostMapping("/message/{id}/react")
     @Operation(summary = "React to message", description = "Add emoji reaction to a message")
@@ -233,6 +227,14 @@ public class ChatRestController {
         participantInfo.put("fullName", user.getFirstName() + " " + user.getLastName());
         //participantInfo.put("username", user.getUsername());
         return participantInfo;
+    }
+
+    @DeleteMapping("/all")
+    @Operation(summary = "Delete all messages", description = "Delete all messages for the current user")
+    public ResponseEntity<Void> deleteAllMessages(Authentication authentication) {
+        User currentUser = (User) authentication.getPrincipal();
+        chatMessageService.deleteAllMessagesForUser(currentUser.getId());
+        return ResponseEntity.noContent().build();
     }
 
     // Request DTO for sending messages
