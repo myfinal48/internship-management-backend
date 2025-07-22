@@ -86,84 +86,9 @@ public class InternshipApplication {
 		  userRepository.save(studentUser);
 		  userRepository.save(teacherUser);
 		  userRepository.save(companyUser);
-		  
-		  // Création d'utilisateurs supplémentaires pour les tests
-		  try {
-			  User student2 = User.builder()
-				  .firstName("Kamto")
-				  .lastName("Maurice")
-				  .username("student2")
-				  .email("student2@student.com")
-				  .password(passwordEncoder.encode("password"))
-				  .role(Role.STUDENT)
-				  .sector(sector1)
-				  .build();
-			  
-			  User company2 = User.builder()
-				  .firstName("pfk")
-				  .lastName("Paul")
-				  .username("Orange")
-				  .email("company2@company.com")
-				  .password(passwordEncoder.encode("password"))
-				  .role(Role.COMPANY)
-				  .sector(sector1)
-				  .build();
-			  
-			  userRepository.save(student2);
-			  userRepository.save(company2);
-			  System.out.println(">>> Utilisateurs supplémentaires créés avec succès");
-		  } catch (Exception e) {
-			  System.err.println(">>> Erreur lors de la création des utilisateurs supplémentaires: " + e.getMessage());
-			  e.printStackTrace();
-		  }
-		  System.out.println(">>> Utilisateurs par défaut créés : admin, teacher, student, company, student2, company2");
+
 		} else {
 		  System.out.println(">>> Utilisateurs déjà existants, création par défaut ignorée.");
-		  
-		  // Création des utilisateurs supplémentaires même si la base n'est pas vide
-		  var sector1 = sectorRepository.findById(1L).orElse(null);
-		  if (sector1 == null) {
-			System.err.println(">>> Erreur : Le secteur nécessaire n'existe pas en base de données.");
-			return;
-		  }
-		  
-		  // Vérifier si student2 existe déjà
-		  if (userRepository.findByEmail("student2@student.com").isEmpty()) {
-			try {
-			  User student2 = User.builder()
-				.firstName("Kamto")
-				.lastName("Maurice")
-				.username("student2")
-				.email("student2@student.com")
-				.password(passwordEncoder.encode("password"))
-				.role(Role.STUDENT)
-				.sector(sector1)
-				.build();
-			  userRepository.save(student2);
-			  System.out.println(">>> Utilisateur student2 créé avec succès");
-			} catch (Exception e) {
-			  System.err.println(">>> Erreur lors de la création de student2: " + e.getMessage());
-			}
-		  }
-		  
-		  // Vérifier si company2 existe déjà
-		  if (userRepository.findByEmail("company2@company.com").isEmpty()) {
-			try {
-			  User company2 = User.builder()
-				.firstName("pfk")
-				.lastName("Paul")
-				.username("Orange")
-				.email("company2@company.com")
-				.password(passwordEncoder.encode("password"))
-				.role(Role.COMPANY)
-				.sector(sector1)
-				.build();
-			  userRepository.save(company2);
-			  System.out.println(">>> Utilisateur company2 créé avec succès");
-			} catch (Exception e) {
-			  System.err.println(">>> Erreur lors de la création de company2: " + e.getMessage());
-			}
-		  }
 		}
 	  };
 	}
