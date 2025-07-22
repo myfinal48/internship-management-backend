@@ -86,7 +86,7 @@ public class InternshipApplication {
 		  userRepository.save(studentUser);
 		  userRepository.save(teacherUser);
 		  userRepository.save(companyUser);
-		  System.out.println(">>> Utilisateurs par défaut créés : admin, teacher, student, company");
+
 		} else {
 		  System.out.println(">>> Utilisateurs déjà existants, création par défaut ignorée.");
 		}

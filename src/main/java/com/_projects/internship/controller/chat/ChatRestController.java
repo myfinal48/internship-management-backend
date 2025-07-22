@@ -9,6 +9,7 @@ import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.service.UserService;
 import com._projects.internship.service.chat.ChatMessageService;
+import com._projects.internship.service.chat.ChatParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,6 +35,7 @@ public class ChatRestController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationRepository applicationRepository;
+    private final ChatParticipantService chatParticipantService;
 
     @PostMapping
     @Operation(summary = "Send message", description = "Send a chat message to another user")
@@ -139,18 +141,10 @@ public class ChatRestController {
     }
 
     @GetMapping("/participants")
-    @Operation(summary = "Get all available chat participants", description = "Returns users (doctors and secretaries, excluding current user) who can be messaged")
+    @Operation(summary = "Get available chat participants", description = "Returns users who can be messaged based on application status")
     public ResponseEntity<List<Map<String, Object>>> getParticipants(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-
-        List<Map<String, Object>> participants = Stream.concat(
-                        userService.getUsersByRole(Role.COMPANY).stream(),
-                        userService.getUsersByRole(Role.STUDENT).stream()
-                )
-                .filter(user -> !user.getId().equals(currentUser.getId()))
-                .map(this::userResponseToParticipantMap)
-                .toList();
-
+        List<Map<String, Object>> participants = chatParticipantService.getAvailableParticipants(currentUser);
         return ResponseEntity.ok(participants);
     }
 
@@ -166,13 +160,7 @@ public class ChatRestController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/all")
-    @Operation(summary = "Delete all messages", description = "Delete all messages for the current user")
-    public ResponseEntity<Void> deleteAllMessages(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        chatMessageService.deleteAllMessagesForUser(currentUser.getId());
-        return ResponseEntity.noContent().build();
-    }
+
 
     @PostMapping("/message/{id}/react")
     @Operation(summary = "React to message", description = "Add emoji reaction to a message")
@@ -186,11 +174,14 @@ public class ChatRestController {
         return ResponseEntity.ok().build();
     }
 
-    private Map<String, Object> userResponseToParticipantMap(User user) {
-        Map<String, Object> participantInfo = new HashMap<>();
-        participantInfo.put("id", user.getId());
-        participantInfo.put("fullName", user.getUsername());
-        return participantInfo;
+    // La méthode userResponseToParticipantMap a été déplacée vers ChatParticipantServiceImpl
+
+    @DeleteMapping("/all")
+    @Operation(summary = "Delete all messages", description = "Delete all messages for the current user")
+    public ResponseEntity<Void> deleteAllMessages(Authentication authentication) {
+        User currentUser = (User) authentication.getPrincipal();
+        chatMessageService.deleteAllMessagesForUser(currentUser.getId());
+        return ResponseEntity.noContent().build();
     }
 
     // Request DTO for sending messages
