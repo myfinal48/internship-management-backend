@@ -11,6 +11,7 @@ import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.repository.core.ConventionRepository;
 import com._projects.internship.repository.core.CompanyInfoRepository;
 import com._projects.internship.repository.security.UserRepository;
+import com._projects.internship.service.notification.NotificationHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class ConventionServiceImpl implements ConventionService {
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
     private final CompanyInfoRepository companyInfoRepository;
+    private final NotificationHelper notificationHelper;
 
     @Override
     @Transactional
@@ -83,6 +85,9 @@ public class ConventionServiceImpl implements ConventionService {
         repository.save(saved);
 
         log.info("Convention créée à partir de la candidature ID {} : convention ID {}", applicationId, saved.getId());
+        
+        // Notify teachers in the sector about the new convention
+        notificationHelper.notifyNewConvention(saved, saved.getCompany());
 
         return mapper.toResponse(saved);
     }
@@ -96,6 +101,13 @@ public class ConventionServiceImpl implements ConventionService {
         convention = repository.save(convention);
         regeneratePdf(convention);
         log.info("Convention ID: {} validée par l'enseignant", id);
+        
+        // Notify admins about teacher validation
+        User teacher = userRepository.findByRole(Role.TEACHER).stream().findFirst().orElse(null);
+        if (teacher != null) {
+            notificationHelper.notifyConventionValidatedByTeacher(convention, teacher);
+        }
+        
         return mapper.toResponse(convention);
     }
 
@@ -108,6 +120,13 @@ public class ConventionServiceImpl implements ConventionService {
         convention = repository.save(convention);
         regeneratePdf(convention);
         log.info("Convention ID: {} rejetée par l'enseignant. Raison: {}", id, reason);
+        
+        // Notify company about teacher rejection
+        User teacher = userRepository.findByRole(Role.TEACHER).stream().findFirst().orElse(null);
+        if (teacher != null) {
+            notificationHelper.notifyConventionRejectedByTeacher(convention, teacher);
+        }
+        
         return mapper.toResponse(convention);
     }
 
@@ -120,6 +139,13 @@ public class ConventionServiceImpl implements ConventionService {
         convention = repository.save(convention);
         regeneratePdf(convention);
         log.info("Convention ID: {} approuvée par l'administrateur", id);
+        
+        // Notify company and student about admin approval
+        User admin = userRepository.findByRole(Role.ADMIN).stream().findFirst().orElse(null);
+        if (admin != null) {
+            notificationHelper.notifyConventionAdminDecision(convention, admin);
+        }
+        
         return mapper.toResponse(convention);
     }
 
@@ -132,6 +158,13 @@ public class ConventionServiceImpl implements ConventionService {
         convention = repository.save(convention);
         regeneratePdf(convention);
         log.info("Convention ID: {} rejetée par l'administrateur. Raison: {}", id, reason);
+        
+        // Notify company about admin rejection
+        User admin = userRepository.findByRole(Role.ADMIN).stream().findFirst().orElse(null);
+        if (admin != null) {
+            notificationHelper.notifyConventionAdminDecision(convention, admin);
+        }
+        
         return mapper.toResponse(convention);
     }
 
