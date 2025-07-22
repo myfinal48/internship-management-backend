@@ -9,6 +9,7 @@ import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.service.UserService;
 import com._projects.internship.service.chat.ChatMessageService;
+import com._projects.internship.service.chat.ChatParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,6 +35,7 @@ public class ChatRestController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationRepository applicationRepository;
+    private final ChatParticipantService chatParticipantService;
 
     @PostMapping
     @Operation(summary = "Send message", description = "Send a chat message to another user")
@@ -142,56 +144,7 @@ public class ChatRestController {
     @Operation(summary = "Get available chat participants", description = "Returns users who can be messaged based on application status")
     public ResponseEntity<List<Map<String, Object>>> getParticipants(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
-        List<User> allowedUsers = new java.util.ArrayList<>();
-
-        // Si l'utilisateur est un étudiant, il ne peut voir que les entreprises auxquelles il a postulé
-        if (currentUser.getRole() == Role.STUDENT) {
-            // Récupérer les IDs des entreprises auxquelles l'étudiant a postulé
-            List<Long> companyIds = applicationRepository.findByStudentId(currentUser.getId())
-                .stream()
-                .map(app -> app.getInternshipOffer().getCompany().getId())
-                .distinct()
-                .toList();
-            
-            // Récupérer les entreprises correspondantes
-            if (!companyIds.isEmpty()) {
-                allowedUsers.addAll(userService.getUsersByRole(Role.COMPANY)
-                    .stream()
-                    .filter(company -> companyIds.contains(company.getId()))
-                    .toList());
-            }
-        } 
-        // Si l'utilisateur est une entreprise, elle ne peut voir que les étudiants qui ont postulé à ses offres
-        else if (currentUser.getRole() == Role.COMPANY) {
-            // Récupérer les IDs des étudiants qui ont postulé aux offres de l'entreprise
-            List<Long> studentIds = applicationRepository.findByOfferCompanyId(currentUser.getId())
-                .stream()
-                .map(app -> app.getStudent().getId())
-                .distinct()
-                .toList();
-            
-            // Récupérer les étudiants correspondants
-            if (!studentIds.isEmpty()) {
-                allowedUsers.addAll(userService.getUsersByRole(Role.STUDENT)
-                    .stream()
-                    .filter(student -> studentIds.contains(student.getId()))
-                    .toList());
-            }
-        } 
-        // Pour les autres rôles (admin, teacher), montrer tous les utilisateurs
-        else {
-            allowedUsers.addAll(Stream.concat(
-                userService.getUsersByRole(Role.COMPANY).stream(),
-                userService.getUsersByRole(Role.STUDENT).stream()
-            ).toList());
-        }
-
-        // Exclure l'utilisateur actuel et convertir en format de réponse
-        List<Map<String, Object>> participants = allowedUsers.stream()
-            .filter(user -> !user.getId().equals(currentUser.getId()))
-            .map(this::userResponseToParticipantMap)
-            .toList();
-
+        List<Map<String, Object>> participants = chatParticipantService.getAvailableParticipants(currentUser);
         return ResponseEntity.ok(participants);
     }
 
@@ -221,13 +174,7 @@ public class ChatRestController {
         return ResponseEntity.ok().build();
     }
 
-    private Map<String, Object> userResponseToParticipantMap(User user) {
-        Map<String, Object> participantInfo = new HashMap<>();
-        participantInfo.put("id", user.getId());
-        participantInfo.put("fullName", user.getFirstName() + " " + user.getLastName());
-        //participantInfo.put("username", user.getUsername());
-        return participantInfo;
-    }
+    // La méthode userResponseToParticipantMap a été déplacée vers ChatParticipantServiceImpl
 
     @DeleteMapping("/all")
     @Operation(summary = "Delete all messages", description = "Delete all messages for the current user")
