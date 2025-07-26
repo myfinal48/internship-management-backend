@@ -101,4 +101,26 @@ public class UserServiceImpl implements UserService {
     Objects.requireNonNull(role, "Role cannot be null for filtering");
     return userRepository.findByRole(role);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User findByUsername(String username) {
+    return userRepository.findByUsername(username)
+        .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
+  }
+
+  @Override
+  @Transactional
+  public User updateProfile(Long userId, String username, String firstName, String lastName, Long sectorId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+    if (username != null && !username.isBlank()) user.setUsername(username);
+    if (firstName != null && !firstName.isBlank()) user.setFirstName(firstName);
+    if (lastName != null && !lastName.isBlank()) user.setLastName(lastName);
+    if (sectorId != null) {
+      user.setSector(sectorRepository.findById(sectorId)
+        .orElseThrow(() -> new ResourceNotFoundException("Sector not found")));
+    }
+    return userRepository.save(user);
+  }
 }

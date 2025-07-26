@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/api/v1/admin/dashboard")
+@RequestMapping("${api.prefix}/admin/dashboard")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')") // Ensure only ADMIN can access dashboard data
 public class AdminDashboardController {

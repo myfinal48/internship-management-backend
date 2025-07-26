@@ -20,7 +20,7 @@ import java.util.Map;
 @RequestMapping("${api.prefix}/conventions")
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Convention Management")
+@Tag(name = "convention-controller")
 public class ConventionController {
 
     private final ConventionService conventionService;

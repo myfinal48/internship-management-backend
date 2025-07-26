@@ -1,7 +1,5 @@
 package com._projects.internship.event;
 
-
-import com._projects.internship.model.chat.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +11,8 @@ import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -41,14 +41,15 @@ public class WebSocketEventListener {
             logger.info("User Disconnected : " + username);
 
             // Notify everyone about the user leaving
-            ChatMessage chatMessage = ChatMessage.builder()
-                    .type(ChatMessage.MessageType.LEAVE)
-                    .sender(username)
-                    .content(username + " left the chat")
-                    .timestamp(Instant.now())
-                    .build();
-
-            messagingTemplate.convertAndSend("/topic/public", chatMessage);
+            messagingTemplate.convertAndSend(
+                    "/topic/status",
+                    Map.of(
+                            "username", username,
+                            "status", "OFFLINE",
+                            "timestamp", LocalDateTime.now(),
+                            "message", username + " left the chat"
+                    )
+            );
         }
     }
 }
