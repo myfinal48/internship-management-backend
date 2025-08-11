@@ -18,7 +18,6 @@ public class ConventionMapper {
         ConventionResponseDTO dto = new ConventionResponseDTO();
         dto.setId(entity.getId());
 
-        // Student
         if (entity.getStudent() != null) {
             String firstName = entity.getStudent().getFirstName() != null ? entity.getStudent().getFirstName() : "";
             String lastName = entity.getStudent().getLastName() != null ? entity.getStudent().getLastName() : "";
@@ -37,8 +36,7 @@ public class ConventionMapper {
         dto.setSupervisorEmail(entity.getSupervisorEmail());
         dto.setObjectives(entity.getObjectives());
         dto.setWeeklyHours(entity.getWeeklyHours());
-        
-        // Sector info
+
         if (entity.getInternshipOffer() != null && entity.getInternshipOffer().getSector() != null) {
             dto.setSectorId(entity.getInternshipOffer().getSector().getId());
             dto.setSectorName(entity.getInternshipOffer().getSector().getName());
@@ -55,8 +53,8 @@ public class ConventionMapper {
         dto.setSkills(entity.getSkills() != null ? entity.getSkills() : new ArrayList<>());
         dto.setLength(entity.getLength() != null ? entity.getLength() : 0);
 
-        // Dates
-        dto.setStartDate(entity.getInternshipStartDate() != null ? entity.getInternshipStartDate() : entity.getCreationDate());
+        dto.setStartDate(
+                entity.getInternshipStartDate() != null ? entity.getInternshipStartDate() : entity.getCreationDate());
         dto.setEndDate(entity.getInternshipEndDate());
 
         if (dto.getEndDate() == null && entity.getCreationDate() != null) {
@@ -64,7 +62,6 @@ public class ConventionMapper {
             dto.setEndDate(entity.getCreationDate().plusMonths(months));
         }
 
-        // Linked application
         if (entity.getApplication() != null) {
             dto.setApplicationId(entity.getApplication().getId());
         }
@@ -84,7 +81,7 @@ public class ConventionMapper {
         dto.setLocation(entity.getLocation());
         dto.setSkills(entity.getSkills());
         dto.setLength(entity.getLength());
-        
+
         if (entity.getCompany() != null) {
             dto.setCompanyId(entity.getCompany().getId());
         }
@@ -94,19 +91,17 @@ public class ConventionMapper {
         dto.setSupervisorEmail(entity.getSupervisorEmail());
         dto.setObjectives(entity.getObjectives());
         dto.setWeeklyHours(entity.getWeeklyHours());
-        
-        // Student
+
         if (entity.getStudent() != null) {
             dto.setStudentId(entity.getStudent().getId());
             dto.setStudentName(entity.getStudent().getFirstName() + " " + entity.getStudent().getLastName());
         }
-        
-        // Sector info
+
         if (entity.getInternshipOffer() != null && entity.getInternshipOffer().getSector() != null) {
             dto.setSectorId(entity.getInternshipOffer().getSector().getId());
             dto.setSectorName(entity.getInternshipOffer().getSector().getName());
         }
-        
+
         dto.setStartDate(entity.getInternshipStartDate());
         dto.setEndDate(entity.getInternshipEndDate());
         dto.setStatus(entity.getStatus());
@@ -114,7 +109,6 @@ public class ConventionMapper {
         dto.setSignedPdfPath(entity.getSignedPdfPath());
         dto.setRejectionReason(entity.getRejectionReason());
 
-        // Linked application
         if (entity.getApplication() != null) {
             dto.setApplicationId(entity.getApplication().getId());
         }

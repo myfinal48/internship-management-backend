@@ -5,7 +5,6 @@ import com._projects.internship.dto.notification.NotificationRequestDTO;
 import com._projects.internship.exceptions.core.ResourceNotFoundException;
 import com._projects.internship.mapper.notification.NotificationMapper;
 import com._projects.internship.model.notification.*;
-import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
 import com._projects.internship.repository.notification.NotificationRepository;
 import com._projects.internship.repository.notification.UserNotificationRepository;
@@ -56,11 +55,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.delete(notification);
 
-        // Notification de suppression
         messagingTemplate.convertAndSend(
                 "/topic/notifications/global",
-                Map.of("action", "DELETE", "id", notificationId)
-        );
+                Map.of("action", "DELETE", "id", notificationId));
     }
 
     @Override
@@ -120,27 +117,20 @@ public class NotificationServiceImpl implements NotificationService {
 
         return new HashSet<>(userRepository.findByCriteria(
                 request.getTargetRole(),
-                request.getSector()
-        ));
+                request.getSector()));
     }
 
     private void handleChannelDelivery(Notification notification, NotificationChannel channel) {
         if (channel == NotificationChannel.EMAIL) {
-            notification.getUserNotifications().forEach(un ->
-                    emailService.sendEmail(
-                            un.getUser().getEmail(),
-                            notification.getSubject(),
-                            notification.getContent()
-                    )
-            );
+            notification.getUserNotifications().forEach(un -> emailService.sendEmail(
+                    un.getUser().getEmail(),
+                    notification.getSubject(),
+                    notification.getContent()));
         }
 
-        notification.getUserNotifications().forEach(un ->
-                messagingTemplate.convertAndSend(
-                        "/topic/notifications/" + un.getUser().getId(),
-                        NotificationMapper.toDto(notification)
-                )
-        );
+        notification.getUserNotifications().forEach(un -> messagingTemplate.convertAndSend(
+                "/topic/notifications/" + un.getUser().getId(),
+                NotificationMapper.toDto(notification)));
     }
 
     @Override
@@ -168,10 +158,13 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationDTO updateNotification(Long notificationId, NotificationRequestDTO request) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + notificationId));
-        
-        if (request.getType() != null) notification.setType(request.getType());
-        if (request.getSubject() != null) notification.setSubject(request.getSubject());
-        if (request.getContent() != null) notification.setContent(request.getContent());
+
+        if (request.getType() != null)
+            notification.setType(request.getType());
+        if (request.getSubject() != null)
+            notification.setSubject(request.getSubject());
+        if (request.getContent() != null)
+            notification.setContent(request.getContent());
 
         if (request.getUserIds() != null && !request.getUserIds().isEmpty()) {
             Set<User> newRecipients = new HashSet<>(userRepository.findAllById(request.getUserIds()));
@@ -213,20 +206,14 @@ public class NotificationServiceImpl implements NotificationService {
                     notification.getUserNotifications().add(un);
                 });
 
-        notification.getUserNotifications().removeIf(un ->
-                !newRecipients.contains(un.getUser())
-        );
+        notification.getUserNotifications().removeIf(un -> !newRecipients.contains(un.getUser()));
     }
 
     private void broadcastNotificationUpdate(Notification notification) {
-        notification.getUserNotifications().forEach(un ->
-                messagingTemplate.convertAndSend(
-                        "/topic/notifications/" + un.getUser().getId(),
-                        Map.of(
-                                "action", "UPDATE",
-                                "notification", NotificationMapper.toDto(notification)
-                        )
-                )
-                        );
-}
+        notification.getUserNotifications().forEach(un -> messagingTemplate.convertAndSend(
+                "/topic/notifications/" + un.getUser().getId(),
+                Map.of(
+                        "action", "UPDATE",
+                        "notification", NotificationMapper.toDto(notification))));
+    }
 }

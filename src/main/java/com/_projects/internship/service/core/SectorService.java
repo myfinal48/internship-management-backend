@@ -7,8 +7,12 @@ import java.util.List;
 
 public interface SectorService {
     Sector createSector(CreateSectorRequestData dto);
-    Sector updateSector(Long id,CreateSectorRequestData dto);
+
+    Sector updateSector(Long id, CreateSectorRequestData dto);
+
     void deleteSector(Long id);
+
     List<Sector> getAllSectors();
+
     Sector getSectorById(Long id);
 }

@@ -3,6 +3,7 @@ package com._projects.internship.service.core;
 import com._projects.internship.dto.core.ConventionRequestDTO;
 import com._projects.internship.dto.core.ConventionResponseDTO;
 import com._projects.internship.dto.user.TeacherDTO;
+import com._projects.internship.exceptions.core.ResourceNotFoundException;
 import com._projects.internship.mapper.core.ConventionMapper;
 import com._projects.internship.model.core.*;
 import com._projects.internship.model.security.Role;
@@ -13,6 +14,8 @@ import com._projects.internship.repository.core.CompanyInfoRepository;
 import com._projects.internship.repository.security.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +48,7 @@ public class ConventionServiceImpl implements ConventionService {
         }
 
         Convention convention = new Convention();
-        InternshipOffer  offer = application.getInternshipOffer();
+        InternshipOffer offer = application.getInternshipOffer();
 
         convention.setTitle("Convention de stage - " + offer.getTitle());
         convention.setDescription(dto.getDescription());
@@ -66,7 +69,6 @@ public class ConventionServiceImpl implements ConventionService {
         convention.setInternshipOffer(offer);
         convention.setApplication(application);
 
-        // Association automatique du CompanyInfo si fourni
         if (dto.getCompanyInfoId() != null) {
             companyInfoRepository.findById(dto.getCompanyInfoId()).ifPresent(convention::setCompanyInfo);
         } else if (offer.getCompany() != null) {
@@ -91,11 +93,26 @@ public class ConventionServiceImpl implements ConventionService {
     @Transactional
     public ConventionResponseDTO validateByTeacher(Long id) {
         Convention convention = getConventionOrThrow(id);
+
+        String currentUserEmail = SecurityContextHolder
+                .getContext().getAuthentication().getName();
+        User teacher = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new SecurityException("Utilisateur non authentifié"));
+
+        if (teacher.getSector() == null) {
+            throw new SecurityException("L'enseignant n'a pas de secteur assigné");
+        }
+
+        if (convention.getInternshipOffer() == null ||
+                convention.getInternshipOffer().getSector() == null ||
+                !convention.getInternshipOffer().getSector().getId().equals(teacher.getSector().getId())) {
+            throw new SecurityException("Vous n'êtes pas autorisé à valider cette convention");
+        }
+
         convention.setStatus(ConventionStatus.VALIDATED_BY_TEACHER);
         convention.setRejectionReason(null);
         convention = repository.save(convention);
         regeneratePdf(convention);
-        log.info("Convention ID: {} validée par l'enseignant", id);
         return mapper.toResponse(convention);
     }
 
@@ -103,11 +120,31 @@ public class ConventionServiceImpl implements ConventionService {
     @Transactional
     public ConventionResponseDTO rejectByTeacher(Long id, String reason) {
         Convention convention = getConventionOrThrow(id);
+
+        String currentUserEmail = SecurityContextHolder
+                .getContext().getAuthentication().getName();
+        User teacher = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new SecurityException("Utilisateur non authentifié"));
+
+        if (teacher.getSector() == null) {
+            throw new SecurityException("L'enseignant n'a pas de secteur assigné");
+        }
+
+        if (convention.getInternshipOffer() == null ||
+                convention.getInternshipOffer().getSector() == null ||
+                !convention.getInternshipOffer().getSector().getId().equals(teacher.getSector().getId())) {
+            throw new SecurityException("Vous n'êtes pas autorisé à rejeter cette convention");
+        }
+
+        if (convention.getStatus() == ConventionStatus.APPROVED_BY_ADMIN) {
+            throw new IllegalStateException("Impossible de rejeter une convention déjà approuvée par l'administrateur");
+        }
+
         convention.setStatus(ConventionStatus.REJECTED_BY_TEACHER);
         convention.setRejectionReason(reason);
         convention = repository.save(convention);
         regeneratePdf(convention);
-        log.info("Convention ID: {} rejetée par l'enseignant. Raison: {}", id, reason);
+        log.info("Convention ID: {} rejetée par l'enseignant ID: {}. Raison: {}", id, teacher.getId(), reason);
         return mapper.toResponse(convention);
     }
 
@@ -139,7 +176,7 @@ public class ConventionServiceImpl implements ConventionService {
     public ConventionResponseDTO getConventionById(Long id) {
         return repository.findById(id)
                 .map(mapper::toResponse)
-                .orElse(null);
+                .orElseThrow(() -> new ResourceNotFoundException("Convention not found with ID: " + id));
     }
 
     @Override
@@ -178,10 +215,10 @@ public class ConventionServiceImpl implements ConventionService {
 
         if (convention.getStatus() != ConventionStatus.PENDING &&
                 convention.getStatus() != ConventionStatus.REJECTED_BY_TEACHER) {
-            throw new IllegalStateException("La convention ne peut pas être modifiée dans son état actuel: " + convention.getStatus());
+            throw new IllegalStateException(
+                    "La convention ne peut pas être modifiée dans son état actuel: " + convention.getStatus());
         }
 
-        // Mise à jour stricte selon le payload frontend
         convention.setTitle(dto.getTitle());
         convention.setCompanyAddress(dto.getCompanyAddress());
         convention.setCompanyName(dto.getCompanyName());
@@ -193,7 +230,6 @@ public class ConventionServiceImpl implements ConventionService {
         convention.setSupervisorName(dto.getSupervisorName());
         convention.setWeeklyHours(dto.getWeeklyHours());
 
-        // Association automatique du CompanyInfo si fourni
         if (dto.getCompanyInfoId() != null) {
             companyInfoRepository.findById(dto.getCompanyInfoId()).ifPresent(convention::setCompanyInfo);
         } else if (convention.getCompany() != null) {
@@ -206,7 +242,8 @@ public class ConventionServiceImpl implements ConventionService {
         if (convention.getStatus() == ConventionStatus.REJECTED_BY_TEACHER) {
             convention.setStatus(ConventionStatus.PENDING);
             convention.setRejectionReason(null);
-            log.info("Statut de la convention ID: {} réinitialisé à PENDING après modification par l'entreprise", dto.getId());
+            log.info("Statut de la convention ID: {} réinitialisé à PENDING après modification par l'entreprise",
+                    dto.getId());
         }
 
         convention = repository.save(convention);
@@ -218,16 +255,14 @@ public class ConventionServiceImpl implements ConventionService {
 
     @Override
     public List<ConventionResponseDTO> getConventionsForTeacher(Long teacherId) {
-        // Récupérer l'enseignant pour connaître son secteur
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Enseignant non trouvé avec l'ID: " + teacherId));
 
         if (teacher.getSector() == null) {
             log.warn("L'enseignant ID: {} n'a pas de secteur assigné", teacherId);
-            return List.of(); // Retourne une liste vide si l'enseignant n'a pas de secteur
+            return List.of();
         }
 
-        // Récupérer toutes les conventions dans le secteur de l'enseignant
         List<Convention> conventions = repository.findByInternshipOfferSectorId(teacher.getSector().getId());
         log.info("Récupération de {} conventions dans le secteur '{}' pour l'enseignant ID: {}",
                 conventions.size(), teacher.getSector().getName(), teacherId);
@@ -248,32 +283,30 @@ public class ConventionServiceImpl implements ConventionService {
 
     private Convention getConventionOrThrow(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException(CONVENTION_NOT_FOUND_MESSAGE + id));
+                .orElseThrow(() -> new ResourceNotFoundException(CONVENTION_NOT_FOUND_MESSAGE + id));
     }
 
     private void regeneratePdf(Convention convention) {
         try {
             log.info("Début de la régénération du PDF pour la convention ID: {}", convention.getId());
-            
+
             if (convention.getPdfPath() != null) {
                 log.info("Suppression de l'ancien PDF: {}", convention.getPdfPath());
                 conventionPdfGenerationService.deletePdf(convention.getPdfPath());
             }
-            
+
             log.info("Génération du nouveau PDF...");
             String newPdfPath = conventionPdfGenerationService.generatePdf(convention);
             log.info("Nouveau PDF généré avec le chemin: {}", newPdfPath);
-            
+
             convention.setPdfPath(newPdfPath);
             Convention savedConvention = repository.save(convention);
             log.info("Convention sauvegardée avec le nouveau pdfPath: {}", savedConvention.getPdfPath());
             log.info("PDF régénéré avec succès pour la convention ID: {}", convention.getId());
         } catch (Exception e) {
-            log.error("Erreur lors de la régénération du PDF pour la convention ID: {}", convention.getId(), e);
-            throw e; // Propager l'erreur pour qu'elle soit visible
+            throw e;
         }
     }
-
 
     @Override
     public byte[] getConventionPdf(Long conventionId) {
@@ -283,23 +316,18 @@ public class ConventionServiceImpl implements ConventionService {
         log.info("PDF signé: {}", convention.getSignedPdfPath());
         log.info("PDF généré: {}", convention.getPdfPath());
 
-        // Priorité au PDF signé s'il existe, sinon utiliser le PDF généré
         String filePath = convention.getSignedPdfPath();
         if (filePath == null || filePath.isEmpty()) {
             filePath = convention.getPdfPath();
             if (filePath == null || filePath.isEmpty()) {
-                log.error("Aucun PDF disponible pour la convention ID: {}", conventionId);
                 throw new IllegalStateException("Aucun PDF n'est disponible pour cette convention");
             }
         }
 
-        log.info("Tentative de récupération du fichier: {}", filePath);
         try {
             byte[] fileContent = conventionStorageService.getFile(filePath);
-            log.info("Fichier récupéré avec succès, taille: {} bytes", fileContent.length);
             return fileContent;
         } catch (Exception e) {
-            log.error("Erreur lors de la récupération du fichier: {}", filePath, e);
             throw e;
         }
     }
@@ -311,15 +339,13 @@ public class ConventionServiceImpl implements ConventionService {
     @Override
     public List<TeacherDTO> getAvailableTeachers() {
         List<User> teachers = userRepository.findByRole(Role.TEACHER);
-        log.info("Récupération de {} enseignants disponibles", teachers.size());
-
         return teachers.stream()
                 .map(teacher -> TeacherDTO.builder()
                         .id(teacher.getId())
                         .firstName(teacher.getFirstName() != null ? teacher.getFirstName() : "")
                         .lastName(teacher.getLastName() != null ? teacher.getLastName() : "")
                         .fullName((teacher.getFirstName() != null ? teacher.getFirstName() : "") + " " +
-                                 (teacher.getLastName() != null ? teacher.getLastName() : ""))
+                                (teacher.getLastName() != null ? teacher.getLastName() : ""))
                         .email(teacher.getEmail())
                         .build())
                 .toList();

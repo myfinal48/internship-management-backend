@@ -1,8 +1,5 @@
 package com._projects.internship.exceptions.core;
 
-/**
- * Exception spécifique pour les erreurs liées à la génération de documents PDF
- */
 public class PdfGenerationException extends RuntimeException {
 
     public PdfGenerationException(String message) {

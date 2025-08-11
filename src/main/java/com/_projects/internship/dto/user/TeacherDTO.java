@@ -5,9 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO pour représenter un enseignant dans l'interface utilisateur.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

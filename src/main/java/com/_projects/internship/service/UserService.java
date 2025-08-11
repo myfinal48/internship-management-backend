@@ -12,7 +12,7 @@ public interface UserService {
 
     User updateUser(Long userId, UpdateUserRequest user);
 
-    void deleteUser(Long userId);
+    void deleteUser(Long userId, String currentUsername);
 
     User getUserById(Long userId);
 
@@ -23,6 +23,4 @@ public interface UserService {
     User findByUsername(String username);
 
     User updateProfile(Long userId, String username, String firstName, String lastName, Long sectorId);
-
-    // Potentially add methods for password reset, enabling/disabling users etc.
 }

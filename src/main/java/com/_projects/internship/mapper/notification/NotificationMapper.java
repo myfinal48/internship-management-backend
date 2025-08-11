@@ -3,12 +3,13 @@ package com._projects.internship.mapper.notification;
 import com._projects.internship.dto.notification.NotificationDTO;
 import com._projects.internship.model.notification.Notification;
 import com._projects.internship.model.notification.UserNotification;
-import com._projects.internship.model.security.User;
 
 import java.util.stream.Collectors;
 
 public class NotificationMapper {
-    private NotificationMapper() {}
+    private NotificationMapper() {
+    }
+
     public static NotificationDTO toDto(Notification notification) {
         NotificationDTO dto = new NotificationDTO();
         dto.setId(notification.getId());
@@ -22,7 +23,6 @@ public class NotificationMapper {
             dto.setSenderId(notification.getSender().getId());
         }
 
-        // Correction pour les destinataires
         dto.setRecipients(notification.getUserNotifications().stream()
                 .map(NotificationMapper::mapUserNotification)
                 .collect(Collectors.toSet()));

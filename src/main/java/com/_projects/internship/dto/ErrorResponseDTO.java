@@ -16,7 +16,7 @@ public class ErrorResponseDTO {
     private int status;
     private String error;
     private String message;
-    
+
     public static ErrorResponseDTO forbidden(String message) {
         return ErrorResponseDTO.builder()
                 .timestamp(LocalDateTime.now())
