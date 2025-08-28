@@ -9,6 +9,7 @@ import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.service.UserService;
 import com._projects.internship.service.chat.ChatMessageService;
+import com._projects.internship.service.chat.ChatParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,10 +21,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("${api.prefix}/chat")
@@ -35,6 +34,7 @@ public class ChatRestController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationRepository applicationRepository;
+    private final ChatParticipantService chatParticipantService;
 
     @PostMapping
     @Operation(
@@ -168,14 +168,19 @@ public class ChatRestController {
     public ResponseEntity<List<Map<String, Object>>> getParticipants(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
 
-        List<Map<String, Object>> participants = Stream.concat(
-                userService.getUsersByRole(Role.COMPANY).stream(),
-                userService.getUsersByRole(Role.STUDENT).stream())
-                .filter(user -> !user.getId().equals(currentUser.getId()))
-                .map(this::userResponseToParticipantMap)
-                .toList();
+        // Validate current user
+        if (currentUser == null || currentUser.getId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        return ResponseEntity.ok(participants);
+        try {
+            // Delegate business logic to service layer for proper role-based filtering
+            List<Map<String, Object>> participants = chatParticipantService.getAvailableParticipants(currentUser);
+            return ResponseEntity.ok(participants);
+        } catch (Exception e) {
+            // Log the exception and return empty list to prevent information leakage
+            return ResponseEntity.ok(List.of());
+        }
     }
 
     @DeleteMapping("/message/{messageId}")
@@ -221,13 +226,7 @@ public class ChatRestController {
         return ResponseEntity.ok().build();
     }
 
-    private Map<String, Object> userResponseToParticipantMap(User user) {
-        Map<String, Object> participantInfo = new HashMap<>();
-        participantInfo.put("id", user.getId());
-        participantInfo.put("fullName", user.getUsername());
-        return participantInfo;
-    }
-
+    
     public static class SendMessageRequest {
 
         @NotBlank(message = "Le contenu du message est obligatoire")

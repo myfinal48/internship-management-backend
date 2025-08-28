@@ -3,6 +3,7 @@ package com._projects.internship.service.core;
 import java.util.List;
 
 import com._projects.internship.model.security.User;
+import com._projects.internship.service.notification.NotificationHelper;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
   private final InternshipOfferRepository internshipOfferRepository;
   private final UserRepository userRepository;
   private final SectorRepository sectorRepository;
+  private final NotificationHelper notificationHelper;
 
   @Override
   public InternshipOffer createInternshipOffer(CreateInternshipOfferRequestDTO dto) {
@@ -39,7 +41,12 @@ public class InternshipOfferServiceImpl implements InternshipOfferService {
     }
     newOffer.setCompany(userToAdd);
     newOffer.setStatus(OfferStatus.ACTIVE);
-    return internshipOfferRepository.save(newOffer);
+    InternshipOffer savedOffer = internshipOfferRepository.save(newOffer);
+      
+      // Send notification to students in the sector
+      notificationHelper.notifyNewOffer(savedOffer, userToAdd);
+      
+      return savedOffer;
   }
 
   @Override

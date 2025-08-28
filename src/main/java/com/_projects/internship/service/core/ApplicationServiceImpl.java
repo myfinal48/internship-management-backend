@@ -23,6 +23,7 @@ import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.ApplicationRepository;
 import com._projects.internship.repository.core.InternshipOfferRepository;
 import com._projects.internship.repository.security.UserRepository;
+import com._projects.internship.service.notification.NotificationHelper;
 import com._projects.internship.service.storage.ApplicationStorageService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final UserRepository userRepository;
     private final InternshipOfferRepository internshipOfferRepository;
     private final ApplicationStorageService appStorage;
+    private final NotificationHelper notificationHelper;
 
     @Override
     @Transactional
@@ -69,6 +71,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         app.setCvPath(cvPath);
         app.setCoverLetterPath(coverPath);
         Application saved = applicationRepository.save(app);
+        
+        // Send notification to the company
+        notificationHelper.notifyNewApplication(saved, student);
 
         return mapToResponseDTO(saved);
     }
@@ -81,6 +86,11 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         app.setStatus(status);
         Application updated = applicationRepository.save(app);
+        
+        // Send notification to the student about the application decision
+        User company = updated.getInternshipOffer().getCompany();
+        notificationHelper.notifyApplicationDecision(updated, company);
+        
         return mapToResponseDTO(updated);
     }
 
