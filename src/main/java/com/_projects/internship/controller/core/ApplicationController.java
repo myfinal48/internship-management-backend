@@ -27,18 +27,18 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("${api.prefix}/applications")
 @RequiredArgsConstructor
-@Tag(name = "application-controller", description = "Gestion des candidatures de stage")
+@Tag(name = "application-controller", description = "Internship application management")
 public class ApplicationController {
     private final ApplicationService applicationService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('STUDENT')")
     @Operation(
-            summary = "Créer une candidature",
-            description = "Permet à un étudiant de postuler à une offre de stage avec CV et lettre de motivation. Rôle requis: STUDENT"
+            summary = "Create an application",
+            description = "Allows a student to apply for an internship offer with CV and cover letter. Required role: STUDENT"
     )
-    @ApiResponse(responseCode = "201", description = "Candidature créée avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle STUDENT requis")
+    @ApiResponse(responseCode = "201", description = "Application created successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied - STUDENT role required")
     public ResponseEntity<ApplicationResponseDTO> createApplication(
         @RequestParam("studentId") Long studentId,
         @RequestParam("offerId")  Long offerId,
@@ -53,11 +53,11 @@ public class ApplicationController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Récupérer toutes les candidatures",
-            description = "Permet à un administrateur de voir toutes les candidatures du système. Rôle requis: ADMIN"
+            summary = "Retrieve all applications",
+            description = "Allows an administrator to view all applications in the system. Required role: ADMIN"
     )
-    @ApiResponse(responseCode = "200", description = "Liste des candidatures récupérée")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle ADMIN requis")
+    @ApiResponse(responseCode = "200", description = "List of applications retrieved")
+    @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required")
     public ResponseEntity<List<ApplicationResponseDTO>> getAllApplications() {
         List<ApplicationResponseDTO> list = applicationService.getAll();
         return ResponseEntity.ok(list);
@@ -66,11 +66,11 @@ public class ApplicationController {
     @GetMapping("/my-applications")
     @PreAuthorize("hasRole('STUDENT') or hasRole('COMPANY')")
     @Operation(
-            summary = "Récupérer mes candidatures",
-            description = "Permet à un étudiant de voir ses candidatures ou à une entreprise de voir les candidatures reçues. Rôles requis: STUDENT ou COMPANY"
+            summary = "Retrieve my applications",
+            description = "Allows a student to view their applications or a company to view received applications. Required roles: STUDENT or COMPANY"
     )
-    @ApiResponse(responseCode = "200", description = "Candidatures récupérées")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle STUDENT ou COMPANY requis")
+    @ApiResponse(responseCode = "200", description = "Applications retrieved")
+    @ApiResponse(responseCode = "403", description = "Access denied - STUDENT or COMPANY role required")
     public ResponseEntity<List<ApplicationResponseDTO>> getMyApplications(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         if (user.getRole().name().equals("STUDENT")) {
@@ -85,11 +85,11 @@ public class ApplicationController {
     @GetMapping("/company/{id}")
     @PreAuthorize("hasRole('COMPANY')")
     @Operation(
-            summary = "Récupérer les candidatures par entreprise",
-            description = "Permet à une entreprise de récupérer toutes les candidatures pour ses offres. Rôle requis: COMPANY"
+            summary = "Retrieve applications by company",
+            description = "Allows a company to retrieve all applications for its offers. Required role: COMPANY"
     )
-    @ApiResponse(responseCode = "200", description = "Candidatures de l'entreprise récupérées")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY requis")
+    @ApiResponse(responseCode = "200", description = "Company applications retrieved")
+    @ApiResponse(responseCode = "403", description = "Access denied - COMPANY role required")
     public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsByCompanyId(
         @PathVariable Long id) {
         return ResponseEntity.ok(applicationService.getByCompanyId(id));
@@ -98,11 +98,11 @@ public class ApplicationController {
     @GetMapping("/offer/{id}")
     @PreAuthorize("hasRole('COMPANY')")
     @Operation(
-            summary = "Récupérer les candidatures par offre",
-            description = "Permet à une entreprise de voir toutes les candidatures pour une offre spécifique. Rôle requis: COMPANY"
+            summary = "Retrieve applications by offer",
+            description = "Allows a company to view all applications for a specific offer. Required role: COMPANY"
     )
-    @ApiResponse(responseCode = "200", description = "Candidatures pour l'offre récupérées")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY requis")
+    @ApiResponse(responseCode = "200", description = "Applications for the offer retrieved")
+    @ApiResponse(responseCode = "403", description = "Access denied - COMPANY role required")
     public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsByOfferId(
         @PathVariable Long id) {
         return ResponseEntity.ok(applicationService.getByOfferId(id));
@@ -111,11 +111,11 @@ public class ApplicationController {
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('COMPANY')")
     @Operation(
-            summary = "Mettre à jour le statut d'une candidature",
-            description = "Permet à une entreprise de changer le statut d'une candidature (acceptée, refusée, en attente). Rôle requis: COMPANY"
+            summary = "Update application status",
+            description = "Allows a company to change the status of an application (accepted, rejected, pending). Required role: COMPANY"
     )
-    @ApiResponse(responseCode = "200", description = "Statut mis à jour")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY requis")
+    @ApiResponse(responseCode = "200", description = "Status updated")
+    @ApiResponse(responseCode = "403", description = "Access denied - COMPANY role required")
     public ResponseEntity<ApplicationResponseDTO> updateApplicationStatus(
         @PathVariable Long id,
         @RequestParam ApplicationStatus status) {
@@ -125,11 +125,11 @@ public class ApplicationController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('STUDENT')")
     @Operation(
-            summary = "Modifier une candidature",
-            description = "Permet à un étudiant de modifier sa candidature (CV et lettre de motivation). Rôle requis: STUDENT"
+            summary = "Update an application",
+            description = "Allows a student to modify their application (CV and cover letter). Required role: STUDENT"
     )
-    @ApiResponse(responseCode = "200", description = "Candidature modifiée")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle STUDENT requis")
+    @ApiResponse(responseCode = "200", description = "Application updated")
+    @ApiResponse(responseCode = "403", description = "Access denied - STUDENT role required")
     public ResponseEntity<ApplicationResponseDTO> updateApplication(
         @PathVariable Long id,
         @RequestParam("studentId") Long studentId,   
@@ -146,14 +146,14 @@ public class ApplicationController {
     }
 
    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT')")
-    @Operation(
-            summary = "Supprimer une candidature",
-            description = "Permet à un étudiant de supprimer sa candidature. Rôle requis: STUDENT"
-    )
-    @ApiResponse(responseCode = "204", description = "Candidature supprimée")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle STUDENT requis")
-    public ResponseEntity<Void> deleteApplication(
+     @PreAuthorize("hasRole('STUDENT')")
+     @Operation(
+             summary = "Delete an application",
+             description = "Allows a student to delete their application. Required role: STUDENT"
+     )
+     @ApiResponse(responseCode = "204", description = "Application deleted")
+     @ApiResponse(responseCode = "403", description = "Access denied - STUDENT role required")
+     public ResponseEntity<Void> deleteApplication(
         @PathVariable Long id,
         @RequestParam Long studentId) {
         applicationService.delete(id, studentId);
@@ -164,11 +164,11 @@ public class ApplicationController {
     @GetMapping("/{id}/bundle")
     @PreAuthorize("hasRole('COMPANY') or hasRole('STUDENT')")
     @Operation(
-            summary = "Télécharger les documents d'une candidature",
-            description = "Permet de télécharger un ZIP contenant CV et lettre de motivation. Rôles requis: COMPANY ou STUDENT"
+            summary = "Download application documents",
+            description = "Allows downloading a ZIP containing CV and cover letter. Required roles: COMPANY or STUDENT"
     )
-    @ApiResponse(responseCode = "200", description = "Documents téléchargés")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY ou STUDENT requis")
+    @ApiResponse(responseCode = "200", description = "Documents downloaded")
+    @ApiResponse(responseCode = "403", description = "Access denied - COMPANY or STUDENT role required")
     public ResponseEntity<StreamingResponseBody> downloadApplicationBundle(@PathVariable Long id) {
         StreamingResponseBody stream = outputStream -> {
             applicationService.streamApplicationZip(id, outputStream);
@@ -183,11 +183,11 @@ public class ApplicationController {
     @GetMapping("/company-applications")
     @PreAuthorize("hasRole('COMPANY')")
     @Operation(
-            summary = "Récupérer les candidatures de mon entreprise",
-            description = "Permet à une entreprise connectée de récupérer toutes ses candidatures. Rôle requis: COMPANY"
+            summary = "Retrieve my company's applications",
+            description = "Allows a logged-in company to retrieve all its applications. Required role: COMPANY"
     )
-    @ApiResponse(responseCode = "200", description = "Candidatures de l'entreprise récupérées")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY requis")
+    @ApiResponse(responseCode = "200", description = "Company applications retrieved")
+    @ApiResponse(responseCode = "403", description = "Access denied - COMPANY role required")
     public ResponseEntity<List<ApplicationResponseDTO>> getApplicationsForCompany(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         List<ApplicationResponseDTO> applications = applicationService.getByCompanyId(user.getId());

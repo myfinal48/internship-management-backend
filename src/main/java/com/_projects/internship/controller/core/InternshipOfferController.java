@@ -28,17 +28,17 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("${api.prefix}/offers")
 @RequiredArgsConstructor
-@Tag(name = "internship-offer-controller", description = "Gestion des offres de stage")
+@Tag(name = "internship-offer-controller", description = "Internship offer management")
 public class InternshipOfferController {
   private final InternshipOfferService internshipOfferService;
 
   @GetMapping("/{id}")
   @Operation(
-          summary = "Récupérer une offre de stage par ID",
-          description = "Permet de récupérer les détails d'une offre de stage spécifique. Accessible à tous."
+          summary = "Retrieve internship offer by ID",
+          description = "Allows retrieving details of a specific internship offer. Accessible to everyone."
   )
-  @ApiResponse(responseCode = "200", description = "Offre de stage trouvée")
-  @ApiResponse(responseCode = "404", description = "Offre de stage non trouvée")
+  @ApiResponse(responseCode = "200", description = "Internship offer found")
+  @ApiResponse(responseCode = "404", description = "Internship offer not found")
   public ResponseEntity<GetInternshipOfferResponseDTO> getInternshipOfferById(@PathVariable Long id)
       throws Exception {
     return ResponseEntity.ok(InternshipOfferMapper.toGetResponseDTO(internshipOfferService.getInternshipById(id)));
@@ -47,11 +47,11 @@ public class InternshipOfferController {
   @PostMapping
   @PreAuthorize("hasRole('COMPANY')")
   @Operation(
-          summary = "Créer une offre de stage",
-          description = "Permet à une entreprise de créer une nouvelle offre de stage. Rôle requis: COMPANY"
+          summary = "Create an internship offer",
+          description = "Allows a company to create a new internship offer. Required role: COMPANY"
   )
-  @ApiResponse(responseCode = "200", description = "Offre de stage créée avec succès")
-  @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY requis")
+  @ApiResponse(responseCode = "200", description = "Internship offer created successfully")
+  @ApiResponse(responseCode = "403", description = "Access denied - COMPANY role required")
   public ResponseEntity<GetInternshipOfferResponseDTO> createInternshipOffer(
       @Valid @RequestBody CreateInternshipOfferRequestDTO dto) throws Exception {
     return ResponseEntity.ok(InternshipOfferMapper.toGetResponseDTO(internshipOfferService.createInternshipOffer(dto)));
@@ -60,11 +60,11 @@ public class InternshipOfferController {
   @PutMapping
   @PreAuthorize("hasRole('COMPANY')")
   @Operation(
-          summary = "Modifier une offre de stage",
-          description = "Permet à une entreprise de modifier une offre de stage existante. Rôle requis: COMPANY"
+          summary = "Update an internship offer",
+          description = "Allows a company to modify an existing internship offer. Required role: COMPANY"
   )
-  @ApiResponse(responseCode = "200", description = "Offre de stage modifiée avec succès")
-  @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY requis")
+  @ApiResponse(responseCode = "200", description = "Internship offer updated successfully")
+  @ApiResponse(responseCode = "403", description = "Access denied - COMPANY role required")
   public ResponseEntity<GetInternshipOfferResponseDTO> updateInternshipOffer(@RequestParam Long id,
       @Valid @RequestBody CreateInternshipOfferRequestDTO dto) throws Exception {
     return ResponseEntity.ok(InternshipOfferMapper.toGetResponseDTO(internshipOfferService.updateInternshipOffer(id,dto)));
@@ -73,11 +73,11 @@ public class InternshipOfferController {
   @PostMapping("/{id}/activate")
   @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
   @Operation(
-          summary = "Activer une offre de stage",
-          description = "Permet d'activer une offre de stage pour la rendre visible aux étudiants. Rôles requis: COMPANY ou ADMIN"
+          summary = "Activate an internship offer",
+          description = "Allows activating an internship offer to make it visible to students. Required roles: COMPANY or ADMIN"
   )
-  @ApiResponse(responseCode = "200", description = "Offre de stage activée")
-  @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY ou ADMIN requis")
+  @ApiResponse(responseCode = "200", description = "Internship offer activated")
+  @ApiResponse(responseCode = "403", description = "Access denied - COMPANY or ADMIN role required")
   public ResponseEntity<GetInternshipOfferResponseDTO> activateInternshipOffer(@PathVariable Long id)
       throws Exception {
     return ResponseEntity
@@ -87,11 +87,11 @@ public class InternshipOfferController {
   @PostMapping("/{id}/inactivate")
   @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
   @Operation(
-          summary = "Désactiver une offre de stage",
-          description = "Permet de désactiver une offre de stage pour la retirer de la liste visible. Rôles requis: COMPANY ou ADMIN"
+          summary = "Deactivate an internship offer",
+          description = "Allows deactivating an internship offer to remove it from the visible list. Required roles: COMPANY or ADMIN"
   )
-  @ApiResponse(responseCode = "200", description = "Offre de stage désactivée")
-  @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY ou ADMIN requis")
+  @ApiResponse(responseCode = "200", description = "Internship offer deactivated")
+  @ApiResponse(responseCode = "403", description = "Access denied - COMPANY or ADMIN role required")
   public ResponseEntity<GetInternshipOfferResponseDTO> inactivateInternshipOffer(@PathVariable Long id)
       throws Exception {
     return ResponseEntity
@@ -101,11 +101,11 @@ public class InternshipOfferController {
   @PostMapping("/{id}/complete")
   @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
   @Operation(
-          summary = "Marquer une offre de stage comme complétée",
-          description = "Permet de marquer une offre de stage comme complétée (poste pourvu). Rôles requis: COMPANY ou ADMIN"
+          summary = "Mark an internship offer as completed",
+          description = "Allows marking an internship offer as completed (position filled). Required roles: COMPANY or ADMIN"
   )
-  @ApiResponse(responseCode = "200", description = "Offre de stage marquée comme complétée")
-  @ApiResponse(responseCode = "403", description = "Accès refusé - rôle COMPANY ou ADMIN requis")
+  @ApiResponse(responseCode = "200", description = "Internship offer marked as completed")
+  @ApiResponse(responseCode = "403", description = "Access denied - COMPANY or ADMIN role required")
   public ResponseEntity<GetInternshipOfferResponseDTO> completeInternshipOffer(@PathVariable Long id)
       throws Exception {
     return ResponseEntity
@@ -114,10 +114,10 @@ public class InternshipOfferController {
 
   @GetMapping
   @Operation(
-          summary = "Rechercher et filtrer les offres de stage",
-          description = "Permet de rechercher des offres de stage avec des filtres (secteur, localisation, durée, statut, entreprise). Accessible à tous."
+          summary = "Search and filter internship offers",
+          description = "Allows searching for internship offers with filters (sector, location, duration, status, company). Accessible to everyone."
   )
-  @ApiResponse(responseCode = "200", description = "Liste des offres filtrées récupérée")
+  @ApiResponse(responseCode = "200", description = "List of filtered offers retrieved")
   public ResponseEntity<List<GetInternshipOfferResponseDTO>> filterOffers(
       @RequestParam(required = false) String sector,
       @RequestParam(required = false) String location,

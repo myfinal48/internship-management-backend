@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix}/admin/users")
 @RequiredArgsConstructor
-@Tag(name = "admin-user-controller", description = "Administration des utilisateurs")
+@Tag(name = "admin-user-controller", description = "User Administration")
 public class AdminUserController {
 
     private final UserService userService;
@@ -35,11 +35,11 @@ public class AdminUserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Récupérer tous les utilisateurs",
-            description = "Permet à un administrateur de récupérer tous les utilisateurs ou filtrer par rôle. Rôle requis: ADMIN"
+            summary = "Retrieve all users",
+            description = "Allows an administrator to retrieve all users or filter by role. Required role: ADMIN"
     )
-    @ApiResponse(responseCode = "200", description = "Liste des utilisateurs récupérée")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle ADMIN requis")
+    @ApiResponse(responseCode = "200", description = "List of users retrieved")
+    @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required")
     public ResponseEntity<List<User>> getAllUsers(@RequestParam(required = false) Role role) {
         List<User> users = (role == null) ? userService.getAllUsers() : userService.getUsersByRole(role);
         return ResponseEntity.ok(users);
@@ -47,11 +47,11 @@ public class AdminUserController {
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Récupérer un utilisateur par ID",
-            description = "Permet de récupérer les détails d'un utilisateur spécifique. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve user by ID",
+            description = "Allows retrieving details of a specific user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Utilisateur trouvé")
-    @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
+    @ApiResponse(responseCode = "200", description = "User found")
+    @ApiResponse(responseCode = "404", description = "User not found")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
@@ -59,12 +59,12 @@ public class AdminUserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Créer un nouvel utilisateur",
-            description = "Permet à un administrateur de créer un nouvel utilisateur dans le système. Rôle requis: ADMIN"
+            summary = "Create a new user",
+            description = "Allows an administrator to create a new user in the system. Required role: ADMIN"
     )
-    @ApiResponse(responseCode = "201", description = "Utilisateur créé avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle ADMIN requis")
-    @ApiResponse(responseCode = "400", description = "Données invalides")
+    @ApiResponse(responseCode = "201", description = "User created successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required")
+    @ApiResponse(responseCode = "400", description = "Invalid data")
     public ResponseEntity<User> createUser(@RequestBody @Valid RegisterRequest request) {
         User user = User.builder()
                 .username(request.getUsername())
@@ -83,12 +83,12 @@ public class AdminUserController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Modifier un utilisateur",
-            description = "Permet à un administrateur de modifier les informations d'un utilisateur. Rôle requis: ADMIN"
+            summary = "Update a user",
+            description = "Allows an administrator to modify a user's information. Required role: ADMIN"
     )
-    @ApiResponse(responseCode = "200", description = "Utilisateur modifié avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle ADMIN requis")
-    @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
+    @ApiResponse(responseCode = "200", description = "User updated successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required")
+    @ApiResponse(responseCode = "404", description = "User not found")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody @Valid UpdateUserRequest user) {
         User updatedUser = userService.updateUser(id, user);
         return ResponseEntity.ok(updatedUser);
@@ -97,12 +97,12 @@ public class AdminUserController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "Supprimer un utilisateur",
-            description = "Permet à un administrateur de supprimer un utilisateur du système. Rôle requis: ADMIN"
+            summary = "Delete a user",
+            description = "Allows an administrator to delete a user from the system. Required role: ADMIN"
     )
-    @ApiResponse(responseCode = "204", description = "Utilisateur supprimé avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - rôle ADMIN requis ou tentative d'auto-suppression")
-    @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
+    @ApiResponse(responseCode = "204", description = "User deleted successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied - ADMIN role required or self-deletion attempt")
+    @ApiResponse(responseCode = "404", description = "User not found")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
         userService.deleteUser(id, userDetails.getUsername());

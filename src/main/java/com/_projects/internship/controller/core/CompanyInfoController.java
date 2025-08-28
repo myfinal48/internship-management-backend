@@ -14,27 +14,27 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix}/company-info")
 @RequiredArgsConstructor
-@Tag(name = "company-info-controller", description = "Gestion des informations d'entreprise")
+@Tag(name = "company-info-controller", description = "Company information management")
 public class CompanyInfoController {
     private final CompanyInfoService companyInfoService;
 
     @PostMapping
     @Operation(
-            summary = "Créer des informations d'entreprise",
-            description = "Permet de créer de nouvelles informations d'entreprise. Accessible à tous les utilisateurs authentifiés."
+            summary = "Create company information",
+            description = "Allows creating new company information. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Informations d'entreprise créées")
+    @ApiResponse(responseCode = "200", description = "Company information created")
     public ResponseEntity<CompanyInfo> create(@RequestBody CompanyInfo companyInfo) {
         return ResponseEntity.ok(companyInfoService.save(companyInfo));
     }
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Récupérer les informations d'une entreprise",
-            description = "Permet de récupérer les informations d'une entreprise par son ID. Accessible à tous."
+            summary = "Retrieve company information",
+            description = "Allows retrieving company information by ID. Accessible to everyone."
     )
-    @ApiResponse(responseCode = "200", description = "Informations d'entreprise trouvées")
-    @ApiResponse(responseCode = "404", description = "Entreprise non trouvée")
+    @ApiResponse(responseCode = "200", description = "Company information found")
+    @ApiResponse(responseCode = "404", description = "Company not found")
     public ResponseEntity<CompanyInfo> getById(@PathVariable Long id) {
         return companyInfoService.findById(id)
                 .map(ResponseEntity::ok)
@@ -43,21 +43,21 @@ public class CompanyInfoController {
 
     @GetMapping
     @Operation(
-            summary = "Récupérer toutes les informations d'entreprises",
-            description = "Permet de récupérer la liste de toutes les informations d'entreprises. Accessible à tous."
+            summary = "Retrieve all company information",
+            description = "Allows retrieving the list of all company information. Accessible to everyone."
     )
-    @ApiResponse(responseCode = "200", description = "Liste des informations d'entreprises récupérée")
+    @ApiResponse(responseCode = "200", description = "List of company information retrieved")
     public ResponseEntity<List<CompanyInfo>> getAll() {
         return ResponseEntity.ok(companyInfoService.findAll());
     }
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Mettre à jour les informations d'une entreprise",
-            description = "Permet de mettre à jour les informations d'une entreprise existante. Accessible à tous les utilisateurs authentifiés."
+            summary = "Update company information",
+            description = "Allows updating existing company information. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Informations d'entreprise mises à jour")
-    @ApiResponse(responseCode = "404", description = "Entreprise non trouvée")
+    @ApiResponse(responseCode = "200", description = "Company information updated")
+    @ApiResponse(responseCode = "404", description = "Company not found")
     public ResponseEntity<CompanyInfo> update(@PathVariable Long id, @RequestBody CompanyInfo companyInfo) {
         return companyInfoService.findById(id)
                 .map(existing -> {
@@ -69,10 +69,10 @@ public class CompanyInfoController {
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "Supprimer les informations d'une entreprise",
-            description = "Permet de supprimer les informations d'une entreprise. Accessible à tous les utilisateurs authentifiés."
+            summary = "Delete company information",
+            description = "Allows deleting company information. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "204", description = "Informations d'entreprise supprimées")
+    @ApiResponse(responseCode = "204", description = "Company information deleted")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         companyInfoService.deleteById(id);
         return ResponseEntity.noContent().build();

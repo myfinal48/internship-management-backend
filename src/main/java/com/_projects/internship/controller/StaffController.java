@@ -25,17 +25,17 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix}/staff")
 @RequiredArgsConstructor
-@Tag(name = "staff-controller", description = "Gestion du personnel et profils utilisateurs")
+@Tag(name = "staff-controller", description = "Staff management and user profiles")
 public class StaffController {
 
     private final UserService userService;
 
     @GetMapping
     @Operation(
-            summary = "Récupérer tout le personnel",
-            description = "Permet de récupérer la liste de tous les utilisateurs du système. Accessible à tous."
+            summary = "Retrieve all staff",
+            description = "Allows retrieving the list of all users in the system. Accessible to everyone."
     )
-    @ApiResponse(responseCode = "200", description = "Liste du personnel récupérée")
+    @ApiResponse(responseCode = "200", description = "Staff list retrieved")
     public ResponseEntity<List<User>> getAllStaff() {
         List<User> staff = userService.getAllUsers();
         return ResponseEntity.ok(staff);
@@ -43,10 +43,10 @@ public class StaffController {
 
     @GetMapping("/{role}")
     @Operation(
-            summary = "Récupérer le personnel par rôle",
-            description = "Permet de récupérer tous les utilisateurs ayant un rôle spécifique (ADMIN, TEACHER, COMPANY, STUDENT). Accessible à tous."
+            summary = "Retrieve staff by role",
+            description = "Allows retrieving all users with a specific role (ADMIN, TEACHER, COMPANY, STUDENT). Accessible to everyone."
     )
-    @ApiResponse(responseCode = "200", description = "Personnel filtré par rôle récupéré")
+    @ApiResponse(responseCode = "200", description = "Staff filtered by role retrieved")
     public ResponseEntity<List<User>> getStaffByRole(@PathVariable Role role) {
         List<User> staff = userService.getUsersByRole(role);
         return ResponseEntity.ok(staff);
@@ -55,12 +55,12 @@ public class StaffController {
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-            summary = "Récupérer mon profil",
-            description = "Permet à un utilisateur connecté de récupérer ses informations de profil. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve my profile",
+            description = "Allows a logged-in user to retrieve their profile information. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Profil utilisateur récupéré")
-    @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
-    @ApiResponse(responseCode = "401", description = "Non authentifié")
+    @ApiResponse(responseCode = "200", description = "User profile retrieved")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<?> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.findByUsername(userDetails.getUsername());
         if (user == null) {
@@ -72,12 +72,12 @@ public class StaffController {
     @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
     @Operation(
-            summary = "Mettre à jour mon profil",
-            description = "Permet à un utilisateur connecté de modifier ses informations de profil. Accessible à tous les utilisateurs authentifiés."
+            summary = "Update my profile",
+            description = "Allows a logged-in user to modify their profile information. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Profil mis à jour avec succès")
-    @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
-    @ApiResponse(responseCode = "401", description = "Non authentifié")
+    @ApiResponse(responseCode = "200", description = "Profile updated successfully")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<?> updateMyProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UpdateProfileRequest updateRequest) {

@@ -20,18 +20,18 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("${api.prefix}/auth")
 @RequiredArgsConstructor
-@Tag(name = "auth-controller", description = "Endpoints d'authentification")
+@Tag(name = "auth-controller", description = "Authentication endpoints")
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
     @Operation(
-            summary = "Inscription d'un nouvel utilisateur",
-            description = "Permet à un utilisateur de créer un compte. Accessible à tous."
+            summary = "Register a new user",
+            description = "Allows a user to create an account. Accessible to everyone."
     )
-    @ApiResponse(responseCode = "200", description = "Inscription réussie")
-    @ApiResponse(responseCode = "400", description = "Données invalides")
+    @ApiResponse(responseCode = "200", description = "Registration successful")
+    @ApiResponse(responseCode = "400", description = "Invalid data")
     public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody RegisterRequest request) {
         try {
@@ -45,11 +45,11 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(
-            summary = "Connexion utilisateur",
-            description = "Permet à un utilisateur de se connecter avec ses identifiants. Accessible à tous."
+            summary = "User login",
+            description = "Allows a user to log in with their credentials. Accessible to everyone."
     )
-    @ApiResponse(responseCode = "200", description = "Connexion réussie")
-    @ApiResponse(responseCode = "401", description = "Identifiants invalides")
+    @ApiResponse(responseCode = "200", description = "Login successful")
+    @ApiResponse(responseCode = "401", description = "Invalid credentials")
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request) {
         try {

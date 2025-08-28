@@ -27,7 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("${api.prefix}/chat")
 @RequiredArgsConstructor
-@Tag(name = "chat-controller", description = "Gestion des messages de chat")
+@Tag(name = "chat-controller", description = "Chat message management")
 public class ChatRestController {
 
     private final ChatMessageService chatMessageService;
@@ -38,11 +38,11 @@ public class ChatRestController {
 
     @PostMapping
     @Operation(
-            summary = "Envoyer un message",
-            description = "Permet d'envoyer un message à un autre utilisateur. Les étudiants doivent avoir postulé à une offre de l'entreprise pour pouvoir lui écrire. Accessible à tous les utilisateurs authentifiés."
+            summary = "Send a message",
+            description = "Allows sending a message to another user. Students must have applied to the company's offer to write to them. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Message envoyé avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - étudiant n'ayant pas postulé")
+    @ApiResponse(responseCode = "200", description = "Message sent successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied - student who has not applied")
     public ResponseEntity<?> sendMessage(
             @Valid @RequestBody SendMessageRequest request,
             Authentication authentication) {
@@ -59,7 +59,7 @@ public class ChatRestController {
                 return ResponseEntity
                         .status(403)
                         .body(ErrorResponseDTO.forbidden(
-                                "Vous devez d'abord postuler à une offre de cette entreprise avant de pouvoir lui envoyer un message."));
+                                "You must first apply to an offer from this company before you can send them a message."));
             }
         }
 
@@ -88,10 +88,10 @@ public class ChatRestController {
 
     @GetMapping
     @Operation(
-            summary = "Récupérer tous mes messages",
-            description = "Permet de récupérer tous les messages de l'utilisateur connecté. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve all my messages",
+            description = "Allows retrieving all messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Messages récupérés")
+    @ApiResponse(responseCode = "200", description = "Messages retrieved")
     public ResponseEntity<List<ChatMessageDTO>> getAllMessages(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         return ResponseEntity.ok(chatMessageService.getMessagesForUser(currentUser.getId()));
@@ -99,10 +99,10 @@ public class ChatRestController {
 
     @GetMapping("/unread")
     @Operation(
-            summary = "Récupérer les messages non lus",
-            description = "Permet de récupérer tous les messages non lus de l'utilisateur connecté. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve unread messages",
+            description = "Allows retrieving all unread messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Messages non lus récupérés")
+    @ApiResponse(responseCode = "200", description = "Unread messages retrieved")
     public ResponseEntity<List<ChatMessageDTO>> getUnreadMessages(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         return ResponseEntity.ok(chatMessageService.getUnreadMessagesForUser(currentUser.getId()));
@@ -110,10 +110,10 @@ public class ChatRestController {
 
     @GetMapping("/conversation/{userId}")
     @Operation(
-            summary = "Récupérer une conversation",
-            description = "Permet de récupérer l'historique de conversation avec un autre utilisateur. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve a conversation",
+            description = "Allows retrieving the conversation history with another user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Conversation récupérée")
+    @ApiResponse(responseCode = "200", description = "Conversation retrieved")
     public ResponseEntity<List<ChatMessageDTO>> getConversation(
             @PathVariable Long userId,
             Authentication authentication) {
@@ -124,10 +124,10 @@ public class ChatRestController {
 
     @PutMapping("/read/{senderId}")
     @Operation(
-            summary = "Marquer comme lu",
-            description = "Permet de marquer tous les messages d'un expéditeur spécifique comme lus. Accessible à tous les utilisateurs authentifiés."
+            summary = "Mark as read",
+            description = "Allows marking all messages from a specific sender as read. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Messages marqués comme lus")
+    @ApiResponse(responseCode = "200", description = "Messages marked as read")
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long senderId,
             Authentication authentication) {
@@ -139,10 +139,10 @@ public class ChatRestController {
 
     @GetMapping("/unread/count")
     @Operation(
-            summary = "Compter les messages non lus",
-            description = "Permet d'obtenir le nombre de messages non lus de l'utilisateur connecté. Accessible à tous les utilisateurs authentifiés."
+            summary = "Count unread messages",
+            description = "Allows getting the number of unread messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Nombre de messages non lus")
+    @ApiResponse(responseCode = "200", description = "Number of unread messages")
     public ResponseEntity<Long> getUnreadCount(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         return ResponseEntity.ok(chatMessageService.countUnreadMessages(currentUser.getId()));
@@ -150,10 +150,10 @@ public class ChatRestController {
 
     @GetMapping("/conversations")
     @Operation(
-            summary = "Récupérer les résumés de conversations",
-            description = "Permet d'obtenir le dernier message de chaque conversation de l'utilisateur. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve conversation summaries",
+            description = "Allows getting the last message of each conversation of the user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Résumés des conversations récupérés")
+    @ApiResponse(responseCode = "200", description = "Conversation summaries retrieved")
     public ResponseEntity<List<ChatMessageDTO>> getConversationSummaries(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         return ResponseEntity.ok(chatMessageService.getConversationSummaries(currentUser.getId()));
@@ -161,10 +161,10 @@ public class ChatRestController {
 
     @GetMapping("/participants")
     @Operation(
-            summary = "Récupérer les participants disponibles",
-            description = "Permet d'obtenir la liste des utilisateurs (entreprises et étudiants) avec qui on peut discuter. Accessible à tous les utilisateurs authentifiés."
+            summary = "Retrieve available participants",
+            description = "Allows getting the list of users (companies and students) with whom one can chat. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Liste des participants disponibles")
+    @ApiResponse(responseCode = "200", description = "List of available participants")
     public ResponseEntity<List<Map<String, Object>>> getParticipants(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
 
@@ -185,10 +185,10 @@ public class ChatRestController {
 
     @DeleteMapping("/message/{messageId}")
     @Operation(
-            summary = "Supprimer un message",
-            description = "Permet de supprimer un message spécifique par son ID. Accessible à tous les utilisateurs authentifiés."
+            summary = "Delete a message",
+            description = "Allows deleting a specific message by its ID. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "204", description = "Message supprimé")
+    @ApiResponse(responseCode = "204", description = "Message deleted")
     public ResponseEntity<Void> deleteMessage(
             @PathVariable Long messageId,
             Authentication authentication) {
@@ -200,10 +200,10 @@ public class ChatRestController {
 
     @DeleteMapping("/all")
     @Operation(
-            summary = "Supprimer tous mes messages",
-            description = "Permet de supprimer tous les messages de l'utilisateur connecté. Accessible à tous les utilisateurs authentifiés."
+            summary = "Delete all my messages",
+            description = "Allows deleting all messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "204", description = "Tous les messages supprimés")
+    @ApiResponse(responseCode = "204", description = "All messages deleted")
     public ResponseEntity<Void> deleteAllMessages(Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         chatMessageService.deleteAllMessagesForUser(currentUser.getId());
@@ -212,10 +212,10 @@ public class ChatRestController {
 
     @PostMapping("/message/{id}/react")
     @Operation(
-            summary = "Réagir à un message",
-            description = "Permet d'ajouter une réaction emoji à un message. Accessible à tous les utilisateurs authentifiés."
+            summary = "React to a message",
+            description = "Allows adding an emoji reaction to a message. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Réaction ajoutée")
+    @ApiResponse(responseCode = "200", description = "Reaction added")
     public ResponseEntity<Void> reactToMessage(
             @PathVariable Long id,
             @RequestParam String reaction,
@@ -229,10 +229,10 @@ public class ChatRestController {
     
     public static class SendMessageRequest {
 
-        @NotBlank(message = "Le contenu du message est obligatoire")
+        @NotBlank(message = "Message content is required")
         private String content;
 
-        @NotBlank(message = "Le nom du destinataire est obligatoire")
+        @NotBlank(message = "Recipient name is required")
         private String recipientName;
 
         public String getContent() {
