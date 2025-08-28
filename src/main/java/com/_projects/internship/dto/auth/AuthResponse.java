@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthResponse {
 
-    private String token; // The JWT token
-    private User user; // Add the user details field
-    // Optionally, you could include the refresh token here as well
-    // private String refreshToken;
+    private String token;
+    private User user;
 }

@@ -7,5 +7,5 @@ public class UpdateProfileRequest {
     private String username;
     private String firstName;
     private String lastName;
-    private Long sectorId; // Optional, if user can change sector
+    private Long sectorId;
 } 

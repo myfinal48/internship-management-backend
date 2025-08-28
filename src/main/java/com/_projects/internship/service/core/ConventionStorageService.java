@@ -1,7 +1,6 @@
 package com._projects.internship.service.core;
 
 import io.minio.*;
-import io.minio.errors.MinioException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +45,7 @@ public class ConventionStorageService {
                                 .object(filePath)
                                 .stream(inputStream, fileContent.length, -1)
                                 .contentType(contentType)
-                                .build()
-                );
+                                .build());
             }
 
             log.info("Fichier '{}' stocké avec succès", filePath);
@@ -65,8 +63,7 @@ public class ConventionStorageService {
                     GetObjectArgs.builder()
                             .bucket(bucketName)
                             .object(filePath)
-                            .build()
-            );
+                            .build());
             return response.readAllBytes();
         } catch (Exception e) {
             log.error("Erreur lors de la récupération du fichier '{}'", filePath, e);
@@ -75,15 +72,14 @@ public class ConventionStorageService {
     }
 
     public String saveSignedConvention(Long conventionId, MultipartFile file) {
-        // Vérification du fichier
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Le fichier ne peut pas être vide");
         }
-        
+
         if (file.getContentType() == null || !"application/pdf".equals(file.getContentType())) {
             throw new IllegalArgumentException("Le fichier doit être au format PDF");
         }
-        
+
         String path = SIGNED_CONVENTIONS_PATH + "convention_" + conventionId + ".pdf";
 
         try {
@@ -96,8 +92,7 @@ public class ConventionStorageService {
                                 .object(path)
                                 .stream(is, file.getSize(), -1)
                                 .contentType(file.getContentType())
-                                .build()
-                );
+                                .build());
             }
 
             log.info("Convention signée ID: {} stockée avec succès sous '{}'", conventionId, path);
@@ -115,8 +110,7 @@ public class ConventionStorageService {
                     RemoveObjectArgs.builder()
                             .bucket(bucketName)
                             .object(filePath)
-                            .build()
-            );
+                            .build());
             log.info("Fichier '{}' supprimé avec succès", filePath);
         } catch (Exception e) {
             log.error("Erreur lors de la suppression du fichier '{}'", filePath, e);

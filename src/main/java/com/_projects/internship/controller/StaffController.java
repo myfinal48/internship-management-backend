@@ -4,6 +4,9 @@ import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
 import com._projects.internship.service.UserService;
 import com._projects.internship.dto.user.UpdateProfileRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,31 +23,44 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RestController
-@RequestMapping("${api.prefix}/staff") // New base path for staff-related info
-@PreAuthorize("hasAnyRole('ADMIN', 'COMPANY', 'STUDENT', 'TEACHER')") // Allow all existing roles
+@RequestMapping("${api.prefix}/staff")
 @RequiredArgsConstructor
+@Tag(name = "staff-controller", description = "Staff management and user profiles")
 public class StaffController {
 
     private final UserService userService;
 
-    // Endpoint specifically for getting users, accessible by multiple roles
     @GetMapping
+    @Operation(
+            summary = "Retrieve all staff",
+            description = "Allows retrieving the list of all users in the system. Accessible to everyone."
+    )
+    @ApiResponse(responseCode = "200", description = "Staff list retrieved")
     public ResponseEntity<List<User>> getAllStaff() {
         List<User> staff = userService.getAllUsers();
-        // Consider returning a simpler DTO instead of the full User object if needed
         return ResponseEntity.ok(staff);
     }
 
-    // Endpoint specifically for getting users, accessible by multiple roles
     @GetMapping("/{role}")
+    @Operation(
+            summary = "Retrieve staff by role",
+            description = "Allows retrieving all users with a specific role (ADMIN, TEACHER, COMPANY, STUDENT). Accessible to everyone."
+    )
+    @ApiResponse(responseCode = "200", description = "Staff filtered by role retrieved")
     public ResponseEntity<List<User>> getStaffByRole(@PathVariable Role role) {
         List<User> staff = userService.getUsersByRole(role);
-        // Consider returning a simpler DTO instead of the full User object if needed
         return ResponseEntity.ok(staff);
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Retrieve my profile",
+            description = "Allows a logged-in user to retrieve their profile information. Accessible to all authenticated users."
+    )
+    @ApiResponse(responseCode = "200", description = "User profile retrieved")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<?> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.findByUsername(userDetails.getUsername());
         if (user == null) {
@@ -55,6 +71,13 @@ public class StaffController {
 
     @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Update my profile",
+            description = "Allows a logged-in user to modify their profile information. Accessible to all authenticated users."
+    )
+    @ApiResponse(responseCode = "200", description = "Profile updated successfully")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     public ResponseEntity<?> updateMyProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UpdateProfileRequest updateRequest) {
@@ -65,6 +88,4 @@ public class StaffController {
         userService.updateProfile(user.getId(), updateRequest.getUsername(), updateRequest.getFirstName(), updateRequest.getLastName(), updateRequest.getSectorId());
         return ResponseEntity.ok("Profile updated successfully");
     }
-
-    // Could add endpoints for other roles or staff lists here if needed
 }

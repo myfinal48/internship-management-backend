@@ -28,10 +28,10 @@ public class ChatMessageDTO {
     private String type;
     private String reactions;
 
-    // From Entity
     public static ChatMessageDTO fromEntity(ChatMessageEntity entity) {
-        if (entity == null) return null;
-        
+        if (entity == null)
+            return null;
+
         return ChatMessageDTO.builder()
                 .id(entity.getId())
                 .content(entity.getContent())
@@ -47,11 +47,6 @@ public class ChatMessageDTO {
                 .build();
     }
 
-
-
-
-
-    // For WebSocket messages
     public static ChatMessageDTO fromWebSocket(ChatMessage message) {
         return ChatMessageDTO.builder()
                 .content(message.getContent())

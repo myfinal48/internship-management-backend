@@ -2,6 +2,7 @@ package com._projects.internship.service;
 
 import com._projects.internship.dto.auth.UpdateUserRequest;
 import com._projects.internship.exceptions.core.ResourceNotFoundException;
+import com._projects.internship.exceptions.core.SelfDeletionException;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
 import com._projects.internship.repository.core.SectorRepository;
@@ -21,13 +22,12 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder; // Needed for encoding password on create/update
+  private final PasswordEncoder passwordEncoder;
   private final SectorRepository sectorRepository;
 
   @Override
   @Transactional
   public User createUser(User user) {
-    // Basic validation (more robust validation can be added)
     Objects.requireNonNull(user, "User cannot be null");
     if (!StringUtils.hasText(user.getPassword())) {
       throw new IllegalArgumentException("Password cannot be empty for new user");
@@ -35,14 +35,12 @@ public class UserServiceImpl implements UserService {
     if (userRepository.findByEmail(user.getEmail()).isPresent()) {
       throw new IllegalArgumentException("Email already exists: " + user.getEmail());
     }
-    // Add username check if username is intended to be unique and is provided
     if (StringUtils.hasText(user.getUsername()) && userRepository.findByUsername(user.getUsername()).isPresent()) {
       throw new IllegalArgumentException("Username already exists: " + user.getUsername());
     }
 
-    // Encode password before saving
     user.setPassword(passwordEncoder.encode(user.getPassword()));
-    user.setId(null); // Ensure ID is null for creation
+    user.setId(null);
     return userRepository.save(user);
   }
 
@@ -53,11 +51,8 @@ public class UserServiceImpl implements UserService {
     Objects.requireNonNull(userUpdates, "User updates cannot be null");
 
     User existingUser = userRepository.findById(userId)
-        .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId)); // Throws exception if not
-                                                                                              // found
+        .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
 
-    // Update mutable fields (prevent changing email/username for now, handle
-    // password separately)
     existingUser.setFirstName(userUpdates.getFirstName());
     existingUser.setLastName(userUpdates.getLastName());
     existingUser.setRole(userUpdates.getRole());
@@ -65,20 +60,20 @@ public class UserServiceImpl implements UserService {
     existingUser.setSector(sectorRepository.findById(userUpdates.getSectorId())
         .orElseThrow(() -> new ResourceNotFoundException("Sector not found")));
     existingUser.setUsername(userUpdates.getUsername());
-    // Add other updatable fields here (e.g., enabled status)
-
-    // Handle password update only if a new password is provided
 
     return userRepository.save(existingUser);
   }
 
   @Override
   @Transactional
-  public void deleteUser(Long userId) {
-    if (!userRepository.existsById(userId)) {
-      throw new EntityNotFoundException("User not found with ID: " + userId);
+  public void deleteUser(Long userId, String currentUsername) {
+    User userToDelete = userRepository.findById(userId)
+        .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+    
+    if (userToDelete.getUsername().equals(currentUsername)) {
+      throw new SelfDeletionException("Cannot delete your own account");
     }
-    // Consider adding checks (e.g., cannot delete the last admin)
+    
     userRepository.deleteById(userId);
   }
 

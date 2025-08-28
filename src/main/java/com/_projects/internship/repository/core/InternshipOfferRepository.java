@@ -4,8 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com._projects.internship.model.core.InternshipOffer;
+import com._projects.internship.model.core.Sector;
 
 public interface InternshipOfferRepository
     extends JpaRepository<InternshipOffer, Long>, JpaSpecificationExecutor<InternshipOffer> {
 
+    boolean existsBySector(Sector sector);
 }

@@ -11,7 +11,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
-import java.time.Instant;
 
 @Controller
 @RequiredArgsConstructor
@@ -19,18 +18,12 @@ public class ChatController {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Handles messages sent to /app/chat.public
-     * Broadcasts the message to all subscribers of /topic/public
-     */
     @MessageMapping("/chat.public")
     @SendTo("/topic/public")
     public ChatMessage handlePublicMessage(
             @Payload ChatMessage chatMessage,
             SimpMessageHeaderAccessor headerAccessor,
-            Principal principal
-    ) {
-        // Set the sender if not already set (use the principal's name)
+            Principal principal) {
         if (chatMessage.getSenderName() == null) {
             chatMessage.setSenderName(principal.getName());
         }
@@ -38,51 +31,35 @@ public class ChatController {
         return chatMessage;
     }
 
-    /**
-     * Handles messages sent to /app/chat.private
-     * Sends the message to the specific user's private queue
-     */
     @MessageMapping("/chat.private")
     public void handlePrivateMessage(
             @Payload ChatMessage chatMessage,
-            Principal principal
-    ) {
-        // Set the sender if not already set (use the principal's name)
+            Principal principal) {
         if (chatMessage.getSenderName() == null) {
             chatMessage.setSenderName(principal.getName());
         }
 
-        // Validate that recipient is specified for private messages
         if (chatMessage.getRecipientName() == null || chatMessage.getRecipientName().trim().isEmpty()) {
             throw new IllegalArgumentException("Recipient is required for private messages");
         }
 
-        // Send it to the recipient's private queue
         messagingTemplate.convertAndSendToUser(
                 chatMessage.getRecipientName(),
                 "/queue/private",
-                chatMessage
-        );
+                chatMessage);
 
-        // Also send a copy to the sender's queue (so they can see their sent messages)
         messagingTemplate.convertAndSendToUser(
                 principal.getName(),
                 "/queue/private",
-                chatMessage
-        );
+                chatMessage);
     }
 
-    /**
-     * Handles user join events
-     */
     @MessageMapping("/chat.join")
     @SendTo("/topic/public")
     public ChatMessage handleUserJoin(
             @Payload ChatMessage chatMessage,
             SimpMessageHeaderAccessor headerAccessor,
-            Principal principal
-    ) {
-        // Add username to the web socket session
+            Principal principal) {
         headerAccessor.getSessionAttributes().put("username", principal.getName());
 
         return ChatMessage.builder()
@@ -92,16 +69,12 @@ public class ChatController {
                 .build();
     }
 
-    /**
-     * Handles user leave events
-     */
     @MessageMapping("/chat.leave")
     @SendTo("/topic/public")
     public ChatMessage handleUserLeave(
             @Payload ChatMessage chatMessage,
             SimpMessageHeaderAccessor headerAccessor,
-            Principal principal
-    ) {
+            Principal principal) {
         return ChatMessage.builder()
                 .type(ChatMessageEntity.MessageType.LEAVE)
                 .senderName(principal.getName())

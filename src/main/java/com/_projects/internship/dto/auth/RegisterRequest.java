@@ -25,17 +25,19 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password cannot be blank")
-    @Size(min = 6, message = "Password must be at least 6 characters long") // Basic length check
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
     @NotBlank(message = "First name cannot be blank")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String firstName;
 
     @NotBlank(message = "Last name cannot be blank")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String lastName;
 
     @NotNull(message = "Role cannot be null")
-    private Role role; // Expecting ADMIN, USER
+    private Role role;
 
     @NotNull(message="Sector can not be null")
     private Long sectorId;

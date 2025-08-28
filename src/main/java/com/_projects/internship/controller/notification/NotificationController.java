@@ -20,14 +20,14 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix}/notifications")
 @RequiredArgsConstructor
-@Tag(name = "notification-controller", description = "Endpoints for managing user notifications")
+@Tag(name = "notification-controller", description = "User notification management")
 public class NotificationController {
 
     private final NotificationService notificationService;
 
     @Operation(
-            summary = "Create and send new notification",
-            description = "Create and send a notification to specified recipients through configured channels"
+            summary = "Create and send a notification",
+            description = "Allows creating and sending a notification to specified recipients via configured channels. Required role: ADMIN"
     )
     @ApiResponse(responseCode = "201", description = "Notification sent successfully")
     @ApiResponse(responseCode = "400", description = "Invalid input data")
@@ -39,8 +39,8 @@ public class NotificationController {
     }
 
     @Operation(
-            summary = "Get notification by ID",
-            description = "Retrieve full details of a specific notification"
+            summary = "Retrieve notification by ID",
+            description = "Allows retrieving complete details of a specific notification. Accessible to all authenticated users."
     )
     @ApiResponse(responseCode = "200", description = "Notification found")
     @ApiResponse(responseCode = "404", description = "Notification not found")
@@ -51,8 +51,8 @@ public class NotificationController {
     }
 
     @Operation(
-            summary = "Get all notifications",
-            description = "Retrieve all notifications in the system (Admin only)"
+            summary = "Retrieve all notifications",
+            description = "Allows retrieving all notifications in the system. Required role: ADMIN"
     )
     @ApiResponse(responseCode = "200", description = "Notifications retrieved successfully")
     @GetMapping
@@ -61,8 +61,8 @@ public class NotificationController {
     }
 
     @Operation(
-            summary = "Update notification",
-            description = "Update notification details and propagate changes to recipients"
+            summary = "Update a notification",
+            description = "Allows updating notification details and propagating changes to recipients. Required role: ADMIN"
     )
     @ApiResponse(responseCode = "200", description = "Notification updated successfully")
     @ApiResponse(responseCode = "404", description = "Notification not found")
@@ -74,8 +74,8 @@ public class NotificationController {
     }
 
     @Operation(
-            summary = "Delete notification",
-            description = "Permanently delete a notification from the system (Admin only)"
+            summary = "Delete a notification",
+            description = "Allows permanently deleting a notification from the system. Required role: ADMIN"
     )
     @ApiResponse(responseCode = "204", description = "Notification deleted successfully")
     @DeleteMapping("/{id}")

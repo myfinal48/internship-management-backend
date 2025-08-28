@@ -14,6 +14,7 @@ import com._projects.internship.model.core.InternshipOffer;
 import com._projects.internship.model.core.OfferStatus;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.repository.core.InternshipOfferRepository;
+import com._projects.internship.repository.core.SectorRepository;
 import com._projects.internship.repository.security.UserRepository;
 import com._projects.internship.specifications.core.InternshipOfferSpecifications;
 
@@ -24,28 +25,35 @@ import lombok.RequiredArgsConstructor;
 public class InternshipOfferServiceImpl implements InternshipOfferService {
   private final InternshipOfferRepository internshipOfferRepository;
   private final UserRepository userRepository;
+  private final SectorRepository sectorRepository;
   private final NotificationHelper notificationHelper;
 
   @Override
   public InternshipOffer createInternshipOffer(CreateInternshipOfferRequestDTO dto) {
+    if (!sectorRepository.existsById(dto.getSector().getId())) {
+      throw new ResourceNotFoundException("Sector not found");
+    }
     InternshipOffer newOffer = InternshipOfferMapper.toEntity(dto);
-    User userToAdd = userRepository.findById(dto.getCompanyId()).orElseThrow();
-    if (userToAdd.getRole().equals(Role.COMPANY)) {
-      newOffer.setCompany(userToAdd);
-      newOffer.setStatus(OfferStatus.ACTIVE);
-      InternshipOffer savedOffer = internshipOfferRepository.save(newOffer);
+    User userToAdd = userRepository.findById(dto.getCompanyId())
+        .orElseThrow(() -> new ResourceNotFoundException("Company not found with ID: " + dto.getCompanyId()));
+    if (!userToAdd.getRole().equals(Role.COMPANY)) {
+      throw new ResourceNotFoundException("User with ID " + dto.getCompanyId() + " is not a company");
+    }
+    newOffer.setCompany(userToAdd);
+    newOffer.setStatus(OfferStatus.ACTIVE);
+    InternshipOffer savedOffer = internshipOfferRepository.save(newOffer);
       
       // Send notification to students in the sector
       notificationHelper.notifyNewOffer(savedOffer, userToAdd);
       
       return savedOffer;
-    } else {
-      throw new ResourceNotFoundException("Company does not exist");
-    }
   }
 
   @Override
   public InternshipOffer updateInternshipOffer(Long id, CreateInternshipOfferRequestDTO dto) {
+    if (!sectorRepository.existsById(dto.getSector().getId())) {
+      throw new ResourceNotFoundException("Sector not found");
+    }
     InternshipOffer offerToUpdate = internshipOfferRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Internship offer not found"));
     offerToUpdate.setTitle(dto.getTitle());

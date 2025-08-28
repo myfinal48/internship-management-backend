@@ -1,5 +1,7 @@
 package com._projects.internship.model.core;
 
+import com._projects.internship.model.security.User;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,15 +16,14 @@ public class CompanyInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;           // Raison sociale
-    private String address;        // Adresse
-    private String email;          // Email de contact
-    private String phone;          // Téléphone
-    private String website;        // Site web
-    private String logoPath;       // Chemin du logo dans MinIO ou stockage
-    // Ajoute d'autres champs si besoin (SIRET, secteur, etc.)
+    private String name;
+    private String address;
+    private String email;
+    private String phone;
+    private String website;
+    private String logoPath;
 
     @ManyToOne
     @JoinColumn(name = "company_id")
-    private com._projects.internship.model.security.User company;
-} 
+    private User company;
+}
