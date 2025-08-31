@@ -1,5 +1,14 @@
 # 🎓 Système de Gestion de Stages - Documentation Fonctionnelle
 
+## 👥 Équipe
+
+- Jake Melvin TIOKOU
+- Jean Vincent YOUMSSI TOGUEM
+- Loïc Luc KENMOE MBEUKEM
+- Hassan Mahamat DOGO
+- Belvinard POUADJEU
+
+
 ## 🎯 Objectif
 
 Plateforme de gestion complète des stages académiques permettant aux étudiants de postuler aux offres, aux entreprises de publier des opportunités, et aux enseignants de superviser le processus. Le système facilite la communication entre tous les acteurs via un chat temps réel et génère automatiquement les conventions de stage.
@@ -520,5 +529,6 @@ src/main/java/com/_projects/internship/
 - **Indexation** : Index sur colonnes fréquemment requêtées
 
 ---
+
 
 *Version 0.0.1-SNAPSHOT - Spring Boot 3.3.11 - JDK 21 - Documentation Technique*
