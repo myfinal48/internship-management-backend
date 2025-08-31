@@ -4,6 +4,55 @@
 
 Plateforme de gestion complète des stages académiques permettant aux étudiants de postuler aux offres, aux entreprises de publier des opportunités, et aux enseignants de superviser le processus. Le système facilite la communication entre tous les acteurs via un chat temps réel et génère automatiquement les conventions de stage.
 
+## 🚀 Démarrage rapide
+
+### Prérequis
+
+- Java 17 ou supérieur
+- Maven 3.6.3 ou supérieur
+- PostgreSQL 13 ou supérieur
+- Node.js 16+ et npm (pour la partie frontend)
+
+### Configuration
+
+1. **Cloner le dépôt**
+   ```bash
+   git clone [URL_DU_DEPOT]
+   cd internship-management-backend
+   ```
+
+2. **Configurer la base de données**
+   - Créer une base de données PostgreSQL
+   - Copier le fichier `env.template` vers `.env`
+   - Mettre à jour les variables d'environnement dans `.env` avec vos paramètres de base de données
+
+3. **Construire le projet**
+   ```bash
+   mvn clean install
+   ```
+
+4. **Lancer l'application**
+   ```bash
+   mvn spring-boot:run
+   ```
+
+5. **Accéder à l'application**
+   - L'API sera disponible sur : `http://localhost:8080`
+   - La documentation Swagger sera accessible sur : `http://localhost:8080/swagger-ui.html`
+
+### Démarrage avec Docker (optionnel)
+
+1. **Construire l'image Docker**
+   ```bash
+   docker-compose build
+   ```
+
+2. **Démarrer les conteneurs**
+   ```bash
+   docker-compose up -d
+   ```
+
+
 ## 🏗️ Principes Clés
 
 ### 👥 Gestion Multi-Rôles
