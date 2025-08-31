@@ -466,6 +466,7 @@ src/main/java/com/_projects/internship/
 ### 🚀 Optimisations
 - **Lazy Loading** : Relations JPA optimisées
 - **Connection Pooling** : HikariCP pour PostgreSQL
+- **Indexation** : Index sur colonnes fréquemment requêtées
 - **Compression** : Gzip pour les réponses API
 - **Indexation** : Index sur colonnes fréquemment requêtées
 
