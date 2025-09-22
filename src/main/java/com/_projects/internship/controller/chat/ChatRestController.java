@@ -41,49 +41,13 @@ public class ChatRestController {
             summary = "Send a message",
             description = "Allows sending a message to another user. Students must have applied to the company's offer to write to them. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Message sent successfully")
-    @ApiResponse(responseCode = "403", description = "Access denied - student who has not applied")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<?> sendMessage(
             @Valid @RequestBody SendMessageRequest request,
             Authentication authentication) {
-
-        User currentUser = (User) authentication.getPrincipal();
-
-        User recipient = userService.findByUsername(request.getRecipientName());
-
-        if (currentUser.getRole() == Role.STUDENT && recipient.getRole() == Role.COMPANY) {
-            boolean hasApplied = applicationRepository.existsByStudentIdAndOfferCompanyId(
-                    currentUser.getId(), recipient.getId());
-
-            if (!hasApplied) {
-                return ResponseEntity
-                        .status(403)
-                        .body(ErrorResponseDTO.forbidden(
-                                "You must first apply to an offer from this company before you can send them a message."));
-            }
-        }
-
-        ChatMessage message = ChatMessage.builder()
-                .content(request.getContent())
-                .senderId(currentUser.getId())
-                .senderName(currentUser.getUsername())
-                .recipientId(recipient.getId())
-                .type(ChatMessageEntity.MessageType.CHAT)
-                .build();
-
-        ChatMessageDTO savedMessage = chatMessageService.saveMessage(message);
-
-        messagingTemplate.convertAndSendToUser(
-                recipient.getId().toString(),
-                "/queue/messages",
-                savedMessage);
-
-        messagingTemplate.convertAndSendToUser(
-                currentUser.getId().toString(),
-                "/queue/messages",
-                savedMessage);
-
-        return ResponseEntity.ok(savedMessage);
+        return ResponseEntity.status(410).body(Map.of(
+                "message", "Chat feature is disabled"
+        ));
     }
 
     @GetMapping
@@ -91,10 +55,9 @@ public class ChatRestController {
             summary = "Retrieve all my messages",
             description = "Allows retrieving all messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Messages retrieved")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<List<ChatMessageDTO>> getAllMessages(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(chatMessageService.getMessagesForUser(currentUser.getId()));
+        return ResponseEntity.status(410).build();
     }
 
     @GetMapping("/unread")
@@ -102,10 +65,9 @@ public class ChatRestController {
             summary = "Retrieve unread messages",
             description = "Allows retrieving all unread messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Unread messages retrieved")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<List<ChatMessageDTO>> getUnreadMessages(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(chatMessageService.getUnreadMessagesForUser(currentUser.getId()));
+        return ResponseEntity.status(410).build();
     }
 
     @GetMapping("/conversation/{userId}")
@@ -113,13 +75,11 @@ public class ChatRestController {
             summary = "Retrieve a conversation",
             description = "Allows retrieving the conversation history with another user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Conversation retrieved")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<List<ChatMessageDTO>> getConversation(
             @PathVariable Long userId,
             Authentication authentication) {
-
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(chatMessageService.getConversation(currentUser.getId(), userId));
+        return ResponseEntity.status(410).build();
     }
 
     @PutMapping("/read/{senderId}")
@@ -127,14 +87,11 @@ public class ChatRestController {
             summary = "Mark as read",
             description = "Allows marking all messages from a specific sender as read. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Messages marked as read")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<Void> markAsRead(
             @PathVariable Long senderId,
             Authentication authentication) {
-
-        User currentUser = (User) authentication.getPrincipal();
-        chatMessageService.markMessagesAsRead(currentUser.getId(), senderId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(410).build();
     }
 
     @GetMapping("/unread/count")
@@ -142,10 +99,9 @@ public class ChatRestController {
             summary = "Count unread messages",
             description = "Allows getting the number of unread messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Number of unread messages")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<Long> getUnreadCount(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(chatMessageService.countUnreadMessages(currentUser.getId()));
+        return ResponseEntity.status(410).build();
     }
 
     @GetMapping("/conversations")
@@ -153,10 +109,9 @@ public class ChatRestController {
             summary = "Retrieve conversation summaries",
             description = "Allows getting the last message of each conversation of the user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Conversation summaries retrieved")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<List<ChatMessageDTO>> getConversationSummaries(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(chatMessageService.getConversationSummaries(currentUser.getId()));
+        return ResponseEntity.status(410).build();
     }
 
     @GetMapping("/participants")
@@ -164,23 +119,9 @@ public class ChatRestController {
             summary = "Retrieve available participants",
             description = "Allows getting the list of users (companies and students) with whom one can chat. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "List of available participants")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<List<Map<String, Object>>> getParticipants(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-
-        // Validate current user
-        if (currentUser == null || currentUser.getId() == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        try {
-            // Delegate business logic to service layer for proper role-based filtering
-            List<Map<String, Object>> participants = chatParticipantService.getAvailableParticipants(currentUser);
-            return ResponseEntity.ok(participants);
-        } catch (Exception e) {
-            // Log the exception and return empty list to prevent information leakage
-            return ResponseEntity.ok(List.of());
-        }
+        return ResponseEntity.status(410).build();
     }
 
     @DeleteMapping("/message/{messageId}")
@@ -188,14 +129,11 @@ public class ChatRestController {
             summary = "Delete a message",
             description = "Allows deleting a specific message by its ID. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "204", description = "Message deleted")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<Void> deleteMessage(
             @PathVariable Long messageId,
             Authentication authentication) {
-
-        User currentUser = (User) authentication.getPrincipal();
-        chatMessageService.deleteMessage(messageId, currentUser.getId());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(410).build();
     }
 
     @DeleteMapping("/all")
@@ -203,11 +141,9 @@ public class ChatRestController {
             summary = "Delete all my messages",
             description = "Allows deleting all messages of the logged-in user. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "204", description = "All messages deleted")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<Void> deleteAllMessages(Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
-        chatMessageService.deleteAllMessagesForUser(currentUser.getId());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(410).build();
     }
 
     @PostMapping("/message/{id}/react")
@@ -215,18 +151,14 @@ public class ChatRestController {
             summary = "React to a message",
             description = "Allows adding an emoji reaction to a message. Accessible to all authenticated users."
     )
-    @ApiResponse(responseCode = "200", description = "Reaction added")
+    @ApiResponse(responseCode = "410", description = "Chat feature is disabled")
     public ResponseEntity<Void> reactToMessage(
             @PathVariable Long id,
             @RequestParam String reaction,
             Authentication authentication) {
-
-        User currentUser = (User) authentication.getPrincipal();
-        chatMessageService.reactToMessage(id, currentUser.getId(), reaction);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(410).build();
     }
 
-    
     public static class SendMessageRequest {
 
         @NotBlank(message = "Message content is required")

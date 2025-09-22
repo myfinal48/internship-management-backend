@@ -24,34 +24,18 @@ public class ChatController {
             @Payload ChatMessage chatMessage,
             SimpMessageHeaderAccessor headerAccessor,
             Principal principal) {
-        if (chatMessage.getSenderName() == null) {
-            chatMessage.setSenderName(principal.getName());
-        }
-
-        return chatMessage;
+        return ChatMessage.builder()
+                .type(ChatMessageEntity.MessageType.LEAVE)
+                .senderName(principal != null ? principal.getName() : "system")
+                .content("Chat feature is disabled")
+                .build();
     }
 
     @MessageMapping("/chat.private")
     public void handlePrivateMessage(
             @Payload ChatMessage chatMessage,
             Principal principal) {
-        if (chatMessage.getSenderName() == null) {
-            chatMessage.setSenderName(principal.getName());
-        }
-
-        if (chatMessage.getRecipientName() == null || chatMessage.getRecipientName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Recipient is required for private messages");
-        }
-
-        messagingTemplate.convertAndSendToUser(
-                chatMessage.getRecipientName(),
-                "/queue/private",
-                chatMessage);
-
-        messagingTemplate.convertAndSendToUser(
-                principal.getName(),
-                "/queue/private",
-                chatMessage);
+        // Chat disabled: no-op
     }
 
     @MessageMapping("/chat.join")
@@ -60,12 +44,10 @@ public class ChatController {
             @Payload ChatMessage chatMessage,
             SimpMessageHeaderAccessor headerAccessor,
             Principal principal) {
-        headerAccessor.getSessionAttributes().put("username", principal.getName());
-
         return ChatMessage.builder()
-                .type(ChatMessageEntity.MessageType.JOIN)
-                .senderName(principal.getName())
-                .content(principal.getName() + " joined the chat")
+                .type(ChatMessageEntity.MessageType.LEAVE)
+                .senderName(principal != null ? principal.getName() : "system")
+                .content("Chat feature is disabled")
                 .build();
     }
 
@@ -77,8 +59,8 @@ public class ChatController {
             Principal principal) {
         return ChatMessage.builder()
                 .type(ChatMessageEntity.MessageType.LEAVE)
-                .senderName(principal.getName())
-                .content(principal.getName() + " left the chat")
+                .senderName(principal != null ? principal.getName() : "system")
+                .content("Chat feature is disabled")
                 .build();
     }
 }

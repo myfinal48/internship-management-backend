@@ -21,192 +21,67 @@ import java.util.List;
 @Slf4j
 public class ChatMessageServiceImpl implements ChatMessageService {
 
-        private final ChatMessageRepository chatMessageRepository;
-        private final UserRepository userRepository;
-        private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-        @Override
-        @Transactional
-        public ChatMessageDTO saveMessage(ChatMessage message) {
-                try {
+    @Override
+    @Transactional
+    public ChatMessageDTO saveMessage(ChatMessage message) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                        User sender = userRepository.findById(message.getSenderId())
-                                        .orElseThrow(() -> new EntityNotFoundException(
-                                                        "Sender not found with ID: " + message.getSenderId()));
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatMessageDTO> getConversation(Long user1Id, Long user2Id) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                        User recipient = userRepository.findById(message.getRecipientId())
-                                        .orElseThrow(() -> new EntityNotFoundException(
-                                                        "Recipient not found with ID: " + message.getRecipientId()));
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatMessageDTO> getMessagesForUser(Long userId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                        ChatMessageEntity messageEntity = ChatMessageEntity.builder()
-                                        .content(message.getContent())
-                                        .sender(sender)
-                                        .recipient(recipient)
-                                        .type(message.getType() != null ? message.getType()
-                                                        : ChatMessageEntity.MessageType.CHAT)
-                                        .isRead(false)
-                                        .build();
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatMessageDTO> getUnreadMessagesForUser(Long userId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                        ChatMessageEntity savedEntity = chatMessageRepository.save(messageEntity);
+    @Override
+    @Transactional
+    public void markMessagesAsRead(Long recipientId, Long senderId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                        return ChatMessageDTO.fromEntity(savedEntity);
+    @Override
+    @Transactional(readOnly = true)
+    public long countUnreadMessages(Long userId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                } catch (Exception e) {
-                        log.error("Error saving chat message", e);
-                        throw e;
-                }
-        }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ChatMessageDTO> getConversationSummaries(Long userId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-        @Override
-        @Transactional(readOnly = true)
-        public List<ChatMessageDTO> getConversation(Long user1Id, Long user2Id) {
-                User user1 = userRepository.findById(user1Id)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + user1Id));
+    @Override
+    @Transactional
+    public void deleteMessage(Long messageId, Long userId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                User user2 = userRepository.findById(user2Id)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + user2Id));
+    @Override
+    @Transactional
+    public void deleteAllMessagesForUser(Long userId) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 
-                return chatMessageRepository.findConversationBetweenUsers(user1, user2).stream()
-                                .map(ChatMessageDTO::fromEntity)
-                                .toList();
-        }
-
-        @Override
-        @Transactional(readOnly = true)
-        public List<ChatMessageDTO> getMessagesForUser(Long userId) {
-                User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-
-                return chatMessageRepository.findMessagesForUser(user).stream()
-                                .map(ChatMessageDTO::fromEntity)
-                                .toList();
-        }
-
-        @Override
-        @Transactional(readOnly = true)
-        public List<ChatMessageDTO> getUnreadMessagesForUser(Long userId) {
-                User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-
-                return chatMessageRepository.findUnreadMessagesForUser(user).stream()
-                                .map(ChatMessageDTO::fromEntity)
-                                .toList();
-        }
-
-        @Override
-        @Transactional
-        public void markMessagesAsRead(Long recipientId, Long senderId) {
-                User recipient = userRepository.findById(recipientId)
-                                .orElseThrow(() -> new EntityNotFoundException(
-                                                "Recipient not found with ID: " + recipientId));
-
-                User sender = userRepository.findById(senderId)
-                                .orElseThrow(() -> new EntityNotFoundException(
-                                                "Sender not found with ID: " + senderId));
-
-                List<ChatMessageEntity> messages = chatMessageRepository.findConversationBetweenUsers(recipient,
-                                sender);
-
-                messages.stream()
-                                .filter(msg -> msg.getRecipient().equals(recipient) && !msg.getIsRead())
-                                .forEach(msg -> {
-                                        msg.setIsRead(true);
-                                        msg.setReadAt(LocalDateTime.now());
-                                });
-
-                chatMessageRepository.saveAll(messages);
-        }
-
-        @Override
-        @Transactional(readOnly = true)
-        public long countUnreadMessages(Long userId) {
-                User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-
-                return chatMessageRepository.countUnreadMessagesForUser(user);
-        }
-
-        @Override
-        @Transactional(readOnly = true)
-        public List<ChatMessageDTO> getConversationSummaries(Long userId) {
-                User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-
-                try {
-                        List<ChatMessageEntity> allMessages = chatMessageRepository.findAllMessagesForUser(user)
-                                        .stream()
-                                        .limit(20)
-                                        .toList();
-
-                        return allMessages.stream()
-                                        .map(ChatMessageDTO::fromEntity)
-                                        .toList();
-                } catch (Exception e) {
-                        log.error("Error getting conversation summaries", e);
-                        return List.of();
-                }
-        }
-
-        @Override
-        @Transactional
-        public void deleteMessage(Long messageId, Long userId) {
-                ChatMessageEntity message = chatMessageRepository.findById(messageId)
-                                .orElseThrow(() -> new EntityNotFoundException(
-                                                "Message not found with ID: " + messageId));
-
-                if (message.getSender().getId().equals(userId)) {
-                        message.setDeletedBySender(true);
-                } else if (message.getRecipient().getId().equals(userId)) {
-                        message.setDeletedByRecipient(true);
-                } else {
-                        throw new SecurityException("User not authorized to delete this message");
-                }
-
-                chatMessageRepository.save(message);
-        }
-
-        @Override
-        @Transactional
-        public void deleteAllMessagesForUser(Long userId) {
-                User user = userRepository.findById(userId)
-                                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
-
-                List<ChatMessageEntity> messages = chatMessageRepository.findMessagesForUser(user);
-
-                messages.forEach(message -> {
-                        if (message.getSender().getId().equals(userId)) {
-                                message.setDeletedBySender(true);
-                        }
-                        if (message.getRecipient().getId().equals(userId)) {
-                                message.setDeletedByRecipient(true);
-                        }
-                });
-
-                chatMessageRepository.saveAll(messages);
-        }
-
-        @Override
-        @Transactional
-        public void reactToMessage(Long messageId, Long userId, String reaction) {
-                ChatMessageEntity message = chatMessageRepository.findById(messageId)
-                                .orElseThrow(() -> new EntityNotFoundException(
-                                                "Message not found with ID: " + messageId));
-
-                if (!message.getSender().getId().equals(userId) && !message.getRecipient().getId().equals(userId)) {
-                        throw new SecurityException("User not authorized to react to this message");
-                }
-
-                message.setReactions(reaction);
-                chatMessageRepository.save(message);
-
-                ChatMessageDTO updatedMessage = ChatMessageDTO.fromEntity(message);
-                messagingTemplate.convertAndSendToUser(
-                                message.getSender().getId().toString(),
-                                "/queue/reactions",
-                                updatedMessage);
-                messagingTemplate.convertAndSendToUser(
-                                message.getRecipient().getId().toString(),
-                                "/queue/reactions",
-                                updatedMessage);
-        }
+    @Override
+    @Transactional
+    public void reactToMessage(Long messageId, Long userId, String reaction) {
+        throw new UnsupportedOperationException("Chat feature is disabled");
+    }
 }
