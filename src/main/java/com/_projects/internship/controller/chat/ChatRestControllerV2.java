@@ -3,6 +3,7 @@ package com._projects.internship.controller.chat;
 import com._projects.internship.dto.chat.*;
 import com._projects.internship.model.security.User;
 import com._projects.internship.service.chat.ChatService;
+import com._projects.internship.service.UserService;
 import com._projects.internship.repository.security.UserRepository;
 import com._projects.internship.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +38,8 @@ public class ChatRestControllerV2 {
 
     private final ChatService chatService;
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final SimpUserRegistry simpUserRegistry;
 
     @PostMapping("/messages")
     @Operation(summary = "Send a message", description = "Send a new message to another user")
@@ -184,6 +189,41 @@ public class ChatRestControllerV2 {
         List<ConversationDTO.ParticipantDTO> participants = chatService.getEligibleParticipants(currentUser);
         
         return ResponseEntity.ok(participants);
+    }
+
+    @GetMapping("/presence")
+    @Operation(summary = "Get current online users",
+               description = "Returns a list of user IDs that are currently online (connected to WebSocket)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Presence retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public ResponseEntity<Map<String, Object>> getPresence(Authentication authentication) {
+        // Gather currently connected principals from SimpUserRegistry
+        try {
+            var users = simpUserRegistry.getUsers();
+            var onlineUserIds = users.stream()
+                    .map(SimpUser::getName)
+                    .map(username -> {
+                        try {
+                            User u = userService.findByUsername(username);
+                            return u != null ? u.getId() : null;
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    })
+                    .filter(id -> id != null)
+                    .distinct()
+                    .toList();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("onlineUserIds", onlineUserIds);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("onlineUserIds", List.of());
+            return ResponseEntity.ok(response);
+        }
     }
 
     @PostMapping("/conversations/{userId}")
