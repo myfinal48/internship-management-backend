@@ -12,10 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Data Transfer Object for chat messages.
- * Designed to be modular and reusable.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -97,9 +94,7 @@ public class MessageDTO {
         private String senderName;
     }
 
-    /**
-     * Convert entity to DTO
-     */
+  
     public static MessageDTO fromEntity(Message message, Long currentUserId) {
         if (message == null) return null;
 
@@ -135,9 +130,7 @@ public class MessageDTO {
                 .build();
     }
 
-    /**
-     * Convert entity to DTO without user context
-     */
+ 
     public static MessageDTO fromEntity(Message message) {
         return fromEntity(message, null);
     }

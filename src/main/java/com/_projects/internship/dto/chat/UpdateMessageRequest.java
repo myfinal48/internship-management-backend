@@ -8,9 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for updating a chat message.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

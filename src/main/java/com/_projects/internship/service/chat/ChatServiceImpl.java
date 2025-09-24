@@ -21,10 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Main implementation of the chat service.
- * This service handles all chat-related operations in a modular way.
- */
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -39,19 +36,15 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public MessageDTO sendMessage(User sender, SendMessageRequest request) {
-        // Find recipient
         User recipient = userRepository.findById(request.getRecipientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Recipient not found"));
 
-        // Check if users can chat
         if (!participantService.canUsersChat(sender, recipient)) {
             throw new UnauthorizedException("You are not authorized to chat with this user");
         }
 
-        // Get or create conversation
         Conversation conversation = getOrCreateConversationEntity(sender, recipient);
 
-        // Create message
         Message message = Message.builder()
                 .conversation(conversation)
                 .sender(sender)
@@ -61,7 +54,6 @@ public class ChatServiceImpl implements ChatService {
                     Message.MessageType.TEXT)
                 .build();
 
-        // Handle reply
         if (request.getReplyToId() != null) {
             Message replyTo = messageRepository.findById(request.getReplyToId())
                     .orElse(null);
@@ -70,24 +62,19 @@ public class ChatServiceImpl implements ChatService {
             }
         }
 
-        // Set metadata if provided
         if (request.getMetadata() != null) {
             message.setMetadata(request.getMetadata());
         }
 
-        // Save message
         message = messageRepository.save(message);
 
-        // Update conversation last message info
         conversation.updateLastMessage(message);
         conversationRepository.save(conversation);
 
-        // Convert to DTO
         MessageDTO messageDTO = MessageDTO.fromEntity(message, sender.getId());
 
-        // Send via WebSocket to both users
-        sendWebSocketMessage(sender.getId(), messageDTO);
-        sendWebSocketMessage(recipient.getId(), messageDTO);
+        sendWebSocketMessage(sender.getUsername(), messageDTO);
+        sendWebSocketMessage(recipient.getUsername(), messageDTO);
 
         log.info("Message sent from user {} to user {}", sender.getId(), recipient.getId());
 
@@ -100,27 +87,22 @@ public class ChatServiceImpl implements ChatService {
         User otherUser = userRepository.findById(otherUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Check if users can chat
         if (!participantService.canUsersChat(currentUser, otherUser)) {
             throw new UnauthorizedException("You are not authorized to chat with this user");
         }
 
-        // Find conversation
         Optional<Conversation> conversation = conversationRepository.findDirectConversation(currentUser, otherUser);
         
         if (conversation.isEmpty()) {
             return Page.empty(pageable);
         }
 
-        // Get messages
         Page<Message> messages = messageRepository.findByConversationForUser(
             conversation.get(), currentUser, pageable
         );
 
-        // Mark messages as read
         markMessagesAsRead(conversation.get(), currentUser);
 
-        // Convert to DTOs
         return messages.map(msg -> MessageDTO.fromEntity(msg, currentUser.getId()));
     }
 
@@ -130,7 +112,6 @@ public class ChatServiceImpl implements ChatService {
         Page<Conversation> conversations = conversationRepository.findByParticipant(user, pageable);
         
         return conversations.map(conv -> {
-            // Count unread messages for this conversation
             int unreadCount = (int) messageRepository.countUnreadInConversation(conv, user);
             return ConversationDTO.fromEntity(conv, user.getId(), unreadCount);
         });
@@ -141,17 +122,14 @@ public class ChatServiceImpl implements ChatService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
-        // Check if user is the sender
         if (!message.getSender().getId().equals(user.getId())) {
             throw new UnauthorizedException("You can only edit your own messages");
         }
 
-        // Check if message is not too old (e.g., 24 hours)
         if (message.getCreatedAt().isBefore(LocalDateTime.now().minusHours(24))) {
             throw new UnauthorizedException("Message is too old to be edited");
         }
 
-        // Edit the message
         message.editContent(request.getContent());
         
         if (request.getMetadata() != null) {
@@ -160,12 +138,10 @@ public class ChatServiceImpl implements ChatService {
 
         message = messageRepository.save(message);
 
-        // Send update via WebSocket
         MessageDTO messageDTO = MessageDTO.fromEntity(message, user.getId());
         
-        // Notify all participants
         message.getConversation().getParticipants().forEach(participant -> 
-            sendWebSocketMessage(participant.getId(), messageDTO)
+            sendWebSocketMessage(participant.getUsername(), messageDTO)
         );
 
         log.info("Message {} edited by user {}", messageId, user.getId());
@@ -178,17 +154,14 @@ public class ChatServiceImpl implements ChatService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
 
-        // Check if user is participant in the conversation
         if (!message.getConversation().hasParticipant(user)) {
             throw new UnauthorizedException("You are not part of this conversation");
         }
 
-        // Soft delete for the user
         message.markAsDeletedBy(user);
         messageRepository.save(message);
 
-        // Send deletion notification via WebSocket
-        sendWebSocketDeletion(user.getId(), messageId);
+        sendWebSocketDeletion(user.getUsername(), messageId);
 
         log.info("Message {} deleted for user {}", messageId, user.getId());
     }
@@ -198,15 +171,13 @@ public class ChatServiceImpl implements ChatService {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
-        // Check if user is participant
         if (!conversation.hasParticipant(reader)) {
             throw new UnauthorizedException("You are not part of this conversation");
         }
 
         markMessagesAsRead(conversation, reader);
         
-        // Send read receipt via WebSocket
-        sendWebSocketReadReceipt(reader.getId(), conversationId);
+        sendWebSocketReadReceipt(reader.getUsername(), conversationId);
     }
 
     @Override
@@ -217,14 +188,12 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public ConversationDTO getOrCreateConversation(User user1, User user2) {
-        // Check if users can chat
         if (!participantService.canUsersChat(user1, user2)) {
             throw new UnauthorizedException("These users are not authorized to chat");
         }
 
         Conversation conversation = getOrCreateConversationEntity(user1, user2);
         
-        // Count unread for user1
         int unreadCount = (int) messageRepository.countUnreadInConversation(conversation, user1);
         
         return ConversationDTO.fromEntity(conversation, user1.getId(), unreadCount);
@@ -239,23 +208,18 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional(readOnly = true)
     public Page<MessageDTO> searchMessages(User user, String query, Pageable pageable) {
-        // This would require a more complex query, potentially using full-text search
-        // For now, returning empty page
         log.warn("Message search not yet implemented");
         return Page.empty(pageable);
     }
 
-    // Helper methods
 
     private Conversation getOrCreateConversationEntity(User user1, User user2) {
-        // Try to find existing conversation
         Optional<Conversation> existing = conversationRepository.findDirectConversation(user1, user2);
         
         if (existing.isPresent()) {
             return existing.get();
         }
 
-        // Create new conversation
         Conversation conversation = Conversation.builder()
                 .type(Conversation.ConversationType.DIRECT)
                 .isActive(true)
@@ -276,39 +240,39 @@ public class ChatServiceImpl implements ChatService {
         });
     }
 
-    private void sendWebSocketMessage(Long userId, MessageDTO message) {
+    private void sendWebSocketMessage(String username, MessageDTO message) {
         try {
             messagingTemplate.convertAndSendToUser(
-                userId.toString(),
+                username,
                 "/queue/messages",
                 message
             );
         } catch (Exception e) {
-            log.error("Error sending WebSocket message to user {}: {}", userId, e.getMessage());
+            log.error("Error sending WebSocket message to user {}: {}", username, e.getMessage());
         }
     }
 
-    private void sendWebSocketDeletion(Long userId, Long messageId) {
+    private void sendWebSocketDeletion(String username, Long messageId) {
         try {
             messagingTemplate.convertAndSendToUser(
-                userId.toString(),
+                username,
                 "/queue/deletions",
                 messageId
             );
         } catch (Exception e) {
-            log.error("Error sending WebSocket deletion to user {}: {}", userId, e.getMessage());
+            log.error("Error sending WebSocket deletion to user {}: {}", username, e.getMessage());
         }
     }
 
-    private void sendWebSocketReadReceipt(Long userId, Long conversationId) {
+    private void sendWebSocketReadReceipt(String username, Long conversationId) {
         try {
             messagingTemplate.convertAndSendToUser(
-                userId.toString(),
+                username,
                 "/queue/read-receipts",
                 conversationId
             );
         } catch (Exception e) {
-            log.error("Error sending WebSocket read receipt to user {}: {}", userId, e.getMessage());
+            log.error("Error sending WebSocket read receipt to user {}: {}", username, e.getMessage());
         }
     }
 }

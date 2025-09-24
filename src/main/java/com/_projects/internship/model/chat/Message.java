@@ -10,10 +10,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Entity representing a chat message.
- * This entity is designed to be modular and reusable across different projects.
- */
+
 @Entity
 @Table(name = "chat_messages_v2", indexes = {
     @Index(name = "idx_message_conversation", columnList = "conversation_id"),
@@ -70,9 +67,8 @@ public class Message {
     private Boolean isEdited = false;
 
     @Column(name = "edit_history", columnDefinition = "TEXT")
-    private String editHistory; // JSON array of previous versions
+    private String editHistory;
 
-    // Track who has read the message
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "message_read_receipts",
@@ -86,7 +82,6 @@ public class Message {
     @Builder.Default
     private Set<User> readBy = new HashSet<>();
 
-    // Soft delete - track who deleted the message for themselves
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "message_deletions",
@@ -100,11 +95,9 @@ public class Message {
     @Builder.Default
     private Set<User> deletedBy = new HashSet<>();
 
-    // For attachments, reactions, etc. (JSON format for flexibility)
     @Column(name = "metadata", columnDefinition = "TEXT")
     private String metadata;
 
-    // Reply to another message
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reply_to_id")
     private Message replyTo;
@@ -125,9 +118,6 @@ public class Message {
         FAILED
     }
 
-    /**
-     * Mark message as read by a user
-     */
     public void markAsReadBy(User user) {
         if (readBy == null) {
             readBy = new HashSet<>();
@@ -138,9 +128,6 @@ public class Message {
         }
     }
 
-    /**
-     * Mark message as deleted for a user (soft delete)
-     */
     public void markAsDeletedBy(User user) {
         if (deletedBy == null) {
             deletedBy = new HashSet<>();
@@ -148,29 +135,20 @@ public class Message {
         deletedBy.add(user);
     }
 
-    /**
-     * Check if message is deleted for a specific user
-     */
     public boolean isDeletedFor(User user) {
         return deletedBy != null && deletedBy.contains(user);
     }
 
-    /**
-     * Check if message is read by a specific user
-     */
+   
     public boolean isReadBy(User user) {
         return readBy != null && readBy.contains(user);
     }
 
-    /**
-     * Edit the message content
-     */
+   
     public void editContent(String newContent) {
-        // Store previous content in edit history (you might want to use JSON here)
         if (this.editHistory == null) {
             this.editHistory = "[{\"content\":\"" + this.content + "\",\"editedAt\":\"" + LocalDateTime.now() + "\"}]";
         } else {
-            // Append to existing history (simplified - in production use proper JSON handling)
             this.editHistory = this.editHistory.substring(0, this.editHistory.length() - 1) + 
                 ",{\"content\":\"" + this.content + "\",\"editedAt\":\"" + LocalDateTime.now() + "\"}]";
         }

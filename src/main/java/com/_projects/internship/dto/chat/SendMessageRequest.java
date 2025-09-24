@@ -9,9 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for sending a chat message.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -10,10 +10,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Entity representing a chat conversation between users.
- * This entity is designed to be modular and reusable across different projects.
- */
+
 @Entity
 @Table(name = "chat_conversations", indexes = {
     @Index(name = "idx_conversation_created", columnList = "created_at"),
@@ -79,18 +76,13 @@ public class Conversation {
     @Builder.Default
     private Boolean isActive = true;
 
-    // Metadata for extensibility
     @Column(name = "metadata", columnDefinition = "TEXT")
     private String metadata;
 
     public enum ConversationType {
-        DIRECT,  // One-to-one conversation
-        GROUP    // Group conversation (for future extensibility)
+        DIRECT,
+        GROUP
     }
-
-    /**
-     * Add a participant to the conversation
-     */
     public void addParticipant(User user) {
         if (participants == null) {
             participants = new HashSet<>();
@@ -98,25 +90,16 @@ public class Conversation {
         participants.add(user);
     }
 
-    /**
-     * Remove a participant from the conversation
-     */
     public void removeParticipant(User user) {
         if (participants != null) {
             participants.remove(user);
         }
     }
 
-    /**
-     * Check if a user is a participant in this conversation
-     */
     public boolean hasParticipant(User user) {
         return participants != null && participants.contains(user);
     }
 
-    /**
-     * Update last message information
-     */
     public void updateLastMessage(Message message) {
         this.lastMessageAt = message.getCreatedAt();
         this.lastMessagePreview = message.getContent().length() > 255 

@@ -15,16 +15,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository for chat messages.
- * Designed to be modular and reusable.
- */
+
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
-    /**
-     * Find messages in a conversation for a user (excluding deleted ones)
-     */
+   
     @Query("SELECT m FROM Message m " +
            "WHERE m.conversation = :conversation " +
            "AND :user NOT MEMBER OF m.deletedBy " +
@@ -33,9 +28,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                             @Param("user") User user, 
                                             Pageable pageable);
 
-    /**
-     * Find recent messages in a conversation for a user
-     */
     @Query("SELECT m FROM Message m " +
            "WHERE m.conversation = :conversation " +
            "AND :user NOT MEMBER OF m.deletedBy " +
@@ -44,9 +36,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                            @Param("user") User user,
                                            Pageable pageable);
 
-    /**
-     * Count unread messages in a conversation for a user
-     */
+   
     @Query("SELECT COUNT(m) FROM Message m " +
            "WHERE m.conversation = :conversation " +
            "AND m.sender != :user " +
@@ -55,9 +45,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     long countUnreadInConversation(@Param("conversation") Conversation conversation, 
                                    @Param("user") User user);
 
-    /**
-     * Count total unread messages for a user across all conversations
-     */
+   
     @Query("SELECT COUNT(m) FROM Message m " +
            "JOIN m.conversation c " +
            "JOIN c.participants p " +
@@ -67,9 +55,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "AND :user NOT MEMBER OF m.deletedBy")
     long countTotalUnreadForUser(@Param("user") User user);
 
-    /**
-     * Find unread messages in a conversation for a user
-     */
+   
     @Query("SELECT m FROM Message m " +
            "WHERE m.conversation = :conversation " +
            "AND m.sender != :user " +
@@ -79,9 +65,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findUnreadInConversation(@Param("conversation") Conversation conversation, 
                                            @Param("user") User user);
 
-    /**
-     * Mark messages as read in a conversation
-     */
+    
     @Modifying
     @Query("UPDATE Message m " +
            "SET m.status = 'READ' " +
@@ -91,9 +75,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     void markMessagesAsRead(@Param("conversation") Conversation conversation, 
                            @Param("reader") User reader);
 
-    /**
-     * Find message with full details
-     */
+    
     @Query("SELECT m FROM Message m " +
            "LEFT JOIN FETCH m.sender " +
            "LEFT JOIN FETCH m.conversation " +
@@ -101,9 +83,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "WHERE m.id = :id")
     Optional<Message> findByIdWithDetails(@Param("id") Long id);
 
-    /**
-     * Find messages by sender in a time range
-     */
+   
     @Query("SELECT m FROM Message m " +
            "WHERE m.sender = :sender " +
            "AND m.createdAt BETWEEN :startTime AND :endTime " +
@@ -112,9 +92,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                           @Param("startTime") LocalDateTime startTime,
                                           @Param("endTime") LocalDateTime endTime);
 
-    /**
-     * Delete (soft) messages older than a certain date for a user
-     */
+  
     @Modifying
     @Query(value = "INSERT INTO message_deletions (message_id, user_id) " +
            "SELECT m.id, :userId FROM chat_messages_v2 m " +
@@ -125,9 +103,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     void softDeleteOldMessagesForUser(@Param("userId") Long userId,
                                       @Param("beforeDate") LocalDateTime beforeDate);
 
-    /**
-     * Find last message in conversation
-     */
     @Query("SELECT m FROM Message m " +
            "WHERE m.conversation = :conversation " +
            "AND m.createdAt = (SELECT MAX(m2.createdAt) FROM Message m2 WHERE m2.conversation = :conversation)")

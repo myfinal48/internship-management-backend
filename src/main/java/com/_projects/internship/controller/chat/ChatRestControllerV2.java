@@ -26,10 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * REST controller for chat functionality.
- * This controller provides HTTP endpoints for the chat module.
- */
 @RestController
 @RequestMapping("${api.prefix}/chat/v2")
 @RequiredArgsConstructor
@@ -203,7 +199,6 @@ public class ChatRestControllerV2 {
             Authentication authentication) {
         
         User currentUser = (User) authentication.getPrincipal();
-        // Fetch the other user from repository to ensure roles and data are available
         User otherUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         

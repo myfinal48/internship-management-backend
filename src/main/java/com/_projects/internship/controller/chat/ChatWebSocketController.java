@@ -18,10 +18,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * WebSocket controller for real-time chat functionality.
- * This controller handles WebSocket messages for the chat module.
- */
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -31,42 +28,37 @@ public class ChatWebSocketController {
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Handle sending a message via WebSocket
-     */
+
     @MessageMapping("/chat.send")
     @SendToUser("/queue/messages")
     public MessageDTO sendMessage(@Payload SendMessageRequest request, Principal principal) {
         try {
-            // Get current user from principal
             User sender = userService.findByUsername(principal.getName());
             if (sender == null) {
                 throw new RuntimeException("User not found");
             }
-            
-            // Send message through service
+
             MessageDTO message = chatService.sendMessage(sender, request);
-            
-            // Also send to recipient
-            messagingTemplate.convertAndSendToUser(
-                request.getRecipientId().toString(),
-                "/queue/messages",
-                message
-            );
-            
+
+            User recipient = userService.getUserById(request.getRecipientId());
+            if (recipient != null) {
+                messagingTemplate.convertAndSendToUser(
+                    recipient.getUsername(),
+                    "/queue/messages",
+                    message
+                );
+            }
+
             log.debug("WebSocket message sent from {} to {}", sender.getId(), request.getRecipientId());
-            
+
             return message;
-            
+
         } catch (Exception e) {
             log.error("Error sending WebSocket message: {}", e.getMessage());
             throw new RuntimeException("Failed to send message: " + e.getMessage());
         }
     }
 
-    /**
-     * Handle typing indicator
-     */
     @MessageMapping("/chat.typing")
     public void handleTyping(@Payload Map<String, Object> payload, Principal principal) {
         try {
@@ -78,17 +70,20 @@ public class ChatWebSocketController {
                 throw new RuntimeException("User not found");
             }
             
+            User recipient = userService.getUserById(recipientId);
+
             Map<String, Object> typingIndicator = new HashMap<>();
             typingIndicator.put("senderId", sender.getId());
             typingIndicator.put("senderName", sender.getUsername());
             typingIndicator.put("isTyping", isTyping);
             
-            // Send typing indicator to recipient
-            messagingTemplate.convertAndSendToUser(
-                recipientId.toString(),
-                "/queue/typing",
-                typingIndicator
-            );
+            if (recipient != null) {
+                messagingTemplate.convertAndSendToUser(
+                    recipient.getUsername(),
+                    "/queue/typing",
+                    typingIndicator
+                );
+            }
             
             log.debug("Typing indicator sent from {} to {}", sender.getId(), recipientId);
             
@@ -97,9 +92,6 @@ public class ChatWebSocketController {
         }
     }
 
-    /**
-     * Handle user connection
-     */
     @MessageMapping("/chat.connect")
     public void handleConnect(SimpMessageHeaderAccessor headerAccessor, Principal principal) {
         try {
@@ -108,11 +100,9 @@ public class ChatWebSocketController {
                 throw new RuntimeException("User not found");
             }
             
-            // Store user info in session
             headerAccessor.getSessionAttributes().put("userId", user.getId());
             headerAccessor.getSessionAttributes().put("username", user.getUsername());
             
-            // Broadcast user online status
             Map<String, Object> status = new HashMap<>();
             status.put("userId", user.getId());
             status.put("username", user.getUsername());
@@ -127,9 +117,6 @@ public class ChatWebSocketController {
         }
     }
 
-    /**
-     * Handle user disconnection
-     */
     @MessageMapping("/chat.disconnect")
     public void handleDisconnect(SimpMessageHeaderAccessor headerAccessor, Principal principal) {
         try {
@@ -138,7 +125,6 @@ public class ChatWebSocketController {
                 throw new RuntimeException("User not found");
             }
             
-            // Broadcast user offline status
             Map<String, Object> status = new HashMap<>();
             status.put("userId", user.getId());
             status.put("username", user.getUsername());
@@ -153,9 +139,6 @@ public class ChatWebSocketController {
         }
     }
 
-    /**
-     * Handle read receipt
-     */
     @MessageMapping("/chat.read")
     public void handleReadReceipt(@Payload Map<String, Object> payload, Principal principal) {
         try {
@@ -166,17 +149,13 @@ public class ChatWebSocketController {
                 throw new RuntimeException("User not found");
             }
             
-            // Mark conversation as read
             chatService.markConversationAsRead(reader, conversationId);
             
-            // Send read receipt to other participants
             Map<String, Object> receipt = new HashMap<>();
             receipt.put("conversationId", conversationId);
             receipt.put("readerId", reader.getId());
             receipt.put("readerName", reader.getUsername());
             
-            // This would need to get other participants and send to them
-            // For simplicity, broadcasting to a conversation-specific topic
             messagingTemplate.convertAndSend(
                 "/topic/conversation/" + conversationId + "/read",
                 receipt
@@ -189,9 +168,6 @@ public class ChatWebSocketController {
         }
     }
 
-    /**
-     * Handle message deletion via WebSocket
-     */
     @MessageMapping("/chat.delete")
     public void handleMessageDeletion(@Payload Map<String, Object> payload, Principal principal) {
         try {
@@ -202,17 +178,14 @@ public class ChatWebSocketController {
                 throw new RuntimeException("User not found");
             }
             
-            // Delete message
             chatService.deleteMessage(user, messageId);
             
-            // Notify about deletion
             Map<String, Object> deletion = new HashMap<>();
             deletion.put("messageId", messageId);
             deletion.put("deletedBy", user.getId());
             
-            // Send to user's queue
             messagingTemplate.convertAndSendToUser(
-                user.getId().toString(),
+                user.getUsername(),
                 "/queue/deletions",
                 deletion
             );

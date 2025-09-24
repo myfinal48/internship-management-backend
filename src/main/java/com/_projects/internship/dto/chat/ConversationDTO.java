@@ -12,10 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Data Transfer Object for chat conversations.
- * Designed to be modular and reusable.
- */
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -12,16 +12,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository for chat conversations.
- * Designed to be modular and reusable.
- */
+
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, Long> {
 
-    /**
-     * Find a direct conversation between two users
-     */
+   
     @Query("SELECT c FROM Conversation c " +
            "JOIN c.participants p1 " +
            "JOIN c.participants p2 " +
@@ -31,9 +26,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "AND c.isActive = true")
     Optional<Conversation> findDirectConversation(@Param("user1") User user1, @Param("user2") User user2);
 
-    /**
-     * Find all conversations for a user with pagination
-     */
+
     @Query("SELECT DISTINCT c FROM Conversation c " +
            "JOIN c.participants p " +
            "WHERE p = :user " +
@@ -41,9 +34,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "ORDER BY c.lastMessageAt DESC NULLS LAST, c.updatedAt DESC")
     Page<Conversation> findByParticipant(@Param("user") User user, Pageable pageable);
 
-    /**
-     * Find all conversations for a user
-     */
     @Query("SELECT DISTINCT c FROM Conversation c " +
            "JOIN c.participants p " +
            "WHERE p = :user " +
@@ -51,17 +41,12 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "ORDER BY c.lastMessageAt DESC NULLS LAST, c.updatedAt DESC")
     List<Conversation> findByParticipant(@Param("user") User user);
 
-    /**
-     * Find conversation by ID with participants loaded
-     */
     @Query("SELECT c FROM Conversation c " +
            "LEFT JOIN FETCH c.participants " +
            "WHERE c.id = :id")
     Optional<Conversation> findByIdWithParticipants(@Param("id") Long id);
 
-    /**
-     * Check if a user is participant of a conversation
-     */
+ 
     @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END " +
            "FROM Conversation c " +
            "JOIN c.participants p " +
@@ -69,18 +54,14 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
            "AND p = :user")
     boolean isUserParticipant(@Param("conversationId") Long conversationId, @Param("user") User user);
 
-    /**
-     * Count conversations for a user
-     */
+    
     @Query("SELECT COUNT(DISTINCT c) FROM Conversation c " +
            "JOIN c.participants p " +
            "WHERE p = :user " +
            "AND c.isActive = true")
     long countByParticipant(@Param("user") User user);
 
-    /**
-     * Find conversations with unread messages for a user
-     */
+
     @Query("SELECT DISTINCT c FROM Conversation c " +
            "JOIN c.participants p " +
            "JOIN c.messages m " +
