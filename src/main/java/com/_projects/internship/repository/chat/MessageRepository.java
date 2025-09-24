@@ -107,4 +107,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "WHERE m.conversation = :conversation " +
            "AND m.createdAt = (SELECT MAX(m2.createdAt) FROM Message m2 WHERE m2.conversation = :conversation)")
     Optional<Message> findLastMessageInConversation(@Param("conversation") Conversation conversation);
+
+    // Idempotent insert of read receipts for a whole conversation
+    @Modifying
+    @Query(value = "INSERT INTO message_read_receipts (message_id, user_id) " +
+           "SELECT m.id, :readerId FROM chat_messages_v2 m " +
+           "WHERE m.conversation_id = :conversationId AND m.sender_id <> :readerId " +
+           "ON CONFLICT (message_id, user_id) DO NOTHING",
+           nativeQuery = true)
+    void insertMissingReadReceipts(@Param("conversationId") Long conversationId,
+                                   @Param("readerId") Long readerId);
 }

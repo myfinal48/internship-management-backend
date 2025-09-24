@@ -149,8 +149,6 @@ public class ChatWebSocketController {
                 throw new RuntimeException("User not found");
             }
             
-            chatService.markConversationAsRead(reader, conversationId);
-            
             Map<String, Object> receipt = new HashMap<>();
             receipt.put("conversationId", conversationId);
             receipt.put("readerId", reader.getId());

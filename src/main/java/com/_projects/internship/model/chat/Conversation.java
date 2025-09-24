@@ -97,7 +97,8 @@ public class Conversation {
     }
 
     public boolean hasParticipant(User user) {
-        return participants != null && participants.contains(user);
+        if (user == null || user.getId() == null) return false;
+        return participants != null && participants.stream().anyMatch(u -> u.getId() != null && u.getId().equals(user.getId()));
     }
 
     public void updateLastMessage(Message message) {

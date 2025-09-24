@@ -82,7 +82,6 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<MessageDTO> getConversationMessages(User currentUser, Long otherUserId, Pageable pageable) {
         User otherUser = userRepository.findById(otherUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -232,12 +231,12 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private void markMessagesAsRead(Conversation conversation, User reader) {
-        List<Message> unreadMessages = messageRepository.findUnreadInConversation(conversation, reader);
-        
-        unreadMessages.forEach(message -> {
-            message.markAsReadBy(reader);
-            messageRepository.save(message);
-        });
+        // 1) Mark message status as READ for messages not yet read by this reader
+        messageRepository.markMessagesAsRead(conversation, reader);
+
+        // 2) Insert missing read receipt rows in join table, idempotently
+        //    This avoids duplicate key errors under concurrent requests
+        messageRepository.insertMissingReadReceipts(conversation.getId(), reader.getId());
     }
 
     private void sendWebSocketMessage(String username, MessageDTO message) {
