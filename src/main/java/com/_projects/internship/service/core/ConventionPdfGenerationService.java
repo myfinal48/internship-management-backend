@@ -288,7 +288,7 @@ public class ConventionPdfGenerationService {
             contentStream.beginText();
             contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 11);
             contentStream.newLineAtOffset(col2X, signatureY);
-            contentStream.showText("Entreprise / Enseignant/Admin:");
+            contentStream.showText("Enseignant/Admin:");
             contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 10);
             contentStream.newLineAtOffset(0, -lineSpacing);
             contentStream.showText("Nom du signataire: ____________________");

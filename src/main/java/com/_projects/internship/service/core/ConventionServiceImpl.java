@@ -99,8 +99,20 @@ public class ConventionServiceImpl implements ConventionService {
     public ConventionResponseDTO validateByTeacher(Long id) {
         Convention convention = getConventionOrThrow(id);
 
-        String currentUserEmail = SecurityContextHolder
-                .getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié");
+        }
+        Object principal = authentication.getPrincipal();
+        String currentUserEmail;
+        if (principal instanceof User u) {
+            currentUserEmail = u.getEmail();
+        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails ud) {
+            currentUserEmail = ud.getUsername();
+        } else {
+            currentUserEmail = authentication.getName();
+        }
+
         User teacher = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new SecurityException("Utilisateur non authentifié"));
 
@@ -132,8 +144,20 @@ public class ConventionServiceImpl implements ConventionService {
     public ConventionResponseDTO rejectByTeacher(Long id, String reason) {
         Convention convention = getConventionOrThrow(id);
 
-        String currentUserEmail = SecurityContextHolder
-                .getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new SecurityException("Utilisateur non authentifié");
+        }
+        Object principal = authentication.getPrincipal();
+        String currentUserEmail;
+        if (principal instanceof User u) {
+            currentUserEmail = u.getEmail();
+        } else if (principal instanceof org.springframework.security.core.userdetails.UserDetails ud) {
+            currentUserEmail = ud.getUsername();
+        } else {
+            currentUserEmail = authentication.getName();
+        }
+
         User teacher = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new SecurityException("Utilisateur non authentifié"));
 
