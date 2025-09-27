@@ -50,9 +50,11 @@ public class Application {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private ApplicationStatus status = ApplicationStatus.PENDING;
 
     @Column(nullable = false)
+    @Builder.Default
     private LocalDateTime applicationDate = LocalDateTime.now();
 
     public InternshipOffer getInternshipOffer() {

@@ -9,7 +9,6 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.Session;
 import java.io.InputStream;
-import java.util.Properties;
 
 @Configuration
 @Profile("test")
@@ -30,17 +29,29 @@ public class TestMailConfig {
                 }
             }
             @Override
-            public void send(MimeMessage mimeMessage) {}
+            public void send(MimeMessage mimeMessage) {
+                // No-op in test profile: email sending is intentionally disabled
+            }
             @Override
-            public void send(MimeMessage... mimeMessages) {}
+            public void send(MimeMessage... mimeMessages) {
+                // No-op in test profile: email sending is intentionally disabled
+            }
             @Override
-            public void send(MimeMessagePreparator mimeMessagePreparator) {}
+            public void send(MimeMessagePreparator mimeMessagePreparator) {
+                // No-op in test profile: email sending is intentionally disabled
+            }
             @Override
-            public void send(MimeMessagePreparator... mimeMessagePreparators) {}
+            public void send(MimeMessagePreparator... mimeMessagePreparators) {
+                // No-op in test profile: email sending is intentionally disabled
+            }
             @Override
-            public void send(SimpleMailMessage simpleMessage) {}
+            public void send(SimpleMailMessage simpleMessage) {
+                // No-op in test profile: email sending is intentionally disabled
+            }
             @Override
-            public void send(SimpleMailMessage... simpleMessages) {}
+            public void send(SimpleMailMessage... simpleMessages) {
+                // No-op in test profile: email sending is intentionally disabled
+            }
         };
     }
-} 
+}

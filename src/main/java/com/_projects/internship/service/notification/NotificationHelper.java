@@ -8,12 +8,10 @@ import com._projects.internship.model.notification.NotificationChannel;
 import com._projects.internship.model.notification.NotificationType;
 import com._projects.internship.model.security.Role;
 import com._projects.internship.model.security.User;
-import com._projects.internship.repository.security.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-
 
 @Component
 @RequiredArgsConstructor
@@ -83,7 +81,9 @@ public class NotificationHelper {
         request.setChannel(NotificationChannel.IN_APP);
         request.setSenderId(sender.getId());
         request.setSubject("Convention validée par un enseignant");
-        request.setContent("Une convention a été validée par un enseignant et nécessite votre approbation");
+        request.setContent("Une convention pour l'offre \"" +
+                convention.getInternshipOffer().getTitle() +
+                "\" a été validée par un enseignant et nécessite votre approbation");
         request.setTargetRole(Role.ADMIN);
         
         notificationService.sendNotification(request);
