@@ -1,5 +1,6 @@
 package com._projects.internship.controller.notification;
 
+import com._projects.internship.dto.notification.ArchiveAllUnreadRequestDTO;
 import com._projects.internship.dto.notification.ArchiveNotificationRequestDTO;
 import com._projects.internship.dto.notification.MarkReadRequestDTO;
 import com._projects.internship.dto.notification.NotificationDTO;
@@ -149,5 +150,17 @@ public class NotificationController {
                         unreadOnly != null && unreadOnly
                 )
         );
+    }
+
+    @Operation(
+            summary = "Archive all unread notifications",
+            description = "Archive all unread notifications for a specific user"
+    )
+    @ApiResponse(responseCode = "200", description = "All unread notifications archived successfully")
+    @PatchMapping("/archive-all-unread")
+    public ResponseEntity<Void> archiveAllUnreadNotifications(
+            @Valid @RequestBody ArchiveAllUnreadRequestDTO request) {
+        notificationService.archiveAllUnreadNotifications(request.getUserId());
+        return ResponseEntity.ok().build();
     }
 }

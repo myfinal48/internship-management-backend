@@ -180,6 +180,22 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void archiveNotification(Long notificationId, Long userId) {
         notificationRepository.updateStatusForUser(notificationId, userId, NotificationStatus.ARCHIVED);
+        
+        // Get the notification to send via WebSocket
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + notificationId));
+        
+        // Send WebSocket message for single archive
+        NotificationDTO notificationDTO = NotificationMapper.toDto(notification);
+        notificationDTO.setStatus(NotificationStatus.ARCHIVED);
+        
+        messagingTemplate.convertAndSend(
+                "/topic/notifications/" + userId,
+                Map.of(
+                        "action", "UPDATE",
+                        "notification", notificationDTO
+                )
+        );
     }
 
     @Override
@@ -215,5 +231,34 @@ public class NotificationServiceImpl implements NotificationService {
                 Map.of(
                         "action", "UPDATE",
                         "notification", NotificationMapper.toDto(notification))));
+    }
+
+    @Override
+    @Transactional
+    public void archiveAllUnreadNotifications(Long userId) {
+        // Get all unread notifications for this user
+        List<Notification> unreadNotifications = notificationRepository.findByUserIdAndStatus(userId, NotificationStatus.UNREAD);
+        
+        if (unreadNotifications.isEmpty()) {
+            return;
+        }
+        
+        // Archive each notification
+        List<Long> notificationIds = unreadNotifications.stream()
+                .map(Notification::getId)
+                .collect(Collectors.toList());
+        
+        notificationIds.forEach(notificationId -> {
+            notificationRepository.updateStatusForUser(notificationId, userId, NotificationStatus.ARCHIVED);
+        });
+        
+        // Send WebSocket message for batch archive
+        messagingTemplate.convertAndSend(
+                "/topic/notifications/" + userId,
+                Map.of(
+                        "action", "ARCHIVE_ALL",
+                        "notificationIds", notificationIds
+                )
+        );
     }
 }
